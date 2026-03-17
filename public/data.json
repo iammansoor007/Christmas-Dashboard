@@ -1,0 +1,719 @@
+{
+  "hero": {
+    "badge": {
+      "icon": "GiSparkles",
+      "text": "LIMITED TIME: 25% Off Early Bird"
+    },
+    "title": {
+      "part1": "CHRISTMAS ",
+      "part2": "LIGHTING",
+      "part3": "SERVICES"
+    },
+    "subtitle": "Holiday or Permanent – we've got your lighting covered",
+    "features": [
+      "Professional Installation",
+      "Energy-Efficient LED Lights",
+      "Custom Design & Planning",
+      "Free Estimates & Consultation"
+    ],
+    "cta": {
+      "subtext": "Get My Free Quote",
+      "phone": "+16143017100",
+      "availability": "Available 7 Days a Week • Free Estimates"
+    },
+    "stats": [
+      {
+        "number": "500+",
+        "label": "Elite Clients",
+        "icon": "FaHome"
+      },
+      {
+        "number": "15+",
+        "label": "Years Excellence",
+        "icon": "FaStar"
+      },
+      {
+        "number": "24/7",
+        "label": "Premium Support",
+        "icon": "FaShieldAlt"
+      },
+      {
+        "number": "100%",
+        "label": "Satisfaction",
+        "icon": "FaHeart"
+      }
+    ],
+    "imageBadge": "Our Premium Work"
+  },
+  "about": {
+    "badge": "About Our Service",
+    "title": {
+      "part1": "Professional Christmas Light",
+      "part2": "Installation Experts"
+    },
+    "subtitle": "We handle everything from custom design to professional installation, maintenance, and storage",
+    "services": {
+      "title": "What's Included With Professional Installation",
+      "items": [
+        {
+          "title": "Custom Lighting Design",
+          "description": "Tailored lighting design created specifically for your home or business, highlighting architectural features and creating the perfect holiday atmosphere.",
+          "icon": "FaPalette",
+          "color": "#E63946"
+        },
+        {
+          "title": "Premium Lights & Décor",
+          "description": "All Christmas lights and décor provided and professionally installed using commercial-grade materials that are 3x brighter than store-bought options.",
+          "icon": "FaLightbulb",
+          "color": "#F4A261"
+        },
+        {
+          "title": "Ongoing Maintenance",
+          "description": "Continuous maintenance throughout the holiday season to ensure your display stays perfect. If anything needs attention, we handle it promptly.",
+          "icon": "FaTools",
+          "color": "#2A9D8F"
+        },
+        {
+          "title": "Full Takedown & Storage",
+          "description": "Complete removal after the season ends. All lights and décor are stored at our facility — no storage required on your end.",
+          "icon": "FaBoxOpen",
+          "color": "#1D3557"
+        }
+      ]
+    },
+    "lightingTypes": {
+      "title": "What Kind of Lights Do We Install?",
+      "items": [
+        {
+          "type": "Seasonal Lighting",
+          "description": "Commercial-grade C9 LED bulbs that are 3x brighter than anything you'll find at big-box stores. Every display is custom-fit to your home.",
+          "lease": true,
+          "icon": "FaStar",
+          "color": "#E63946"
+        },
+        {
+          "type": "Permanent Lighting",
+          "description": "Invisilights permanent lighting systems installed on your home. These are purchased and professionally installed for year-round use.",
+          "lease": false,
+          "icon": "FaHome",
+          "color": "#2A9D8F"
+        }
+      ]
+    },
+    "faq": [
+      {
+        "question": "Am I buying the seasonal lights?",
+        "answer": "No. All seasonal lights and décor are leased and maintained by our team, so you never have to worry about repairs, storage, or climbing ladders. If anything needs attention during the season, we handle it.",
+        "category": "Pricing",
+        "icon": "FaQuestionCircle"
+      },
+      {
+        "question": "Do I buy the permanent lighting?",
+        "answer": "Yes. Permanent lighting systems are purchased and professionally installed on your home. These are yours to keep and enjoy year-round.",
+        "category": "Permanent Lighting",
+        "icon": "FaHome"
+      },
+      {
+        "question": "Do you install lights I already own?",
+        "answer": "We don't — and here's why: we use professional-grade Christmas lighting on every project so we can guarantee quality, safety, and reliability all season long.",
+        "category": "Installation",
+        "icon": "FaShieldAlt"
+      },
+      {
+        "question": "Are discounts available?",
+        "answer": "Yes, we offer discounts for installations completed before November, as well as loyalty discounts for continuous years of service.",
+        "category": "Pricing",
+        "icon": "FaTag"
+      }
+    ],
+    "cta": {
+      "title": "Ready for a Stress-Free Holiday Season?",
+      "description": "Let us handle everything — from design to installation to storage.",
+      "button": "Get Your Free Quote",
+      "phone": "+16143017100"
+    }
+  },
+  "services": {
+    "badge": "Premium Services",
+    "title": {
+      "text": "Christmas Lighting",
+      "prefix": "Premium"
+    },
+    "subtitle": "Custom holiday lighting designed to make your home stand out.",
+    "features": [
+      {
+        "title": "Warrantied Product & Service",
+        "description": "Full coverage on all materials and installation work",
+        "icon": "FaShieldAlt",
+        "color": "#E63946"
+      },
+      {
+        "title": "48-Hour Maintenance",
+        "description": "Free maintenance within 48 hours of installation",
+        "icon": "FaTools",
+        "color": "#F4A261"
+      },
+      {
+        "title": "Professional Installation",
+        "description": "Licensed, insured, certified technicians",
+        "icon": "FaCheckCircle",
+        "color": "#2A9D8F"
+      }
+    ],
+    "trustIndicators": {
+      "homesCount": "500+",
+      "rating": "4.9/5",
+      "reviewsCount": "248 reviews"
+    },
+    "infoCard": {
+      "title": "Premium Maintenance Guarantee",
+      "description": "48-hour response for maintenance. Your display stays perfect all season."
+    },
+    "buttons": {
+      "primary": "Get Quote",
+      "secondary": "View Gallery"
+    },
+    "colors": {
+      "primaryRed": "#E63946",
+      "primaryGold": "#F4A261",
+      "primaryEmerald": "#2A9D8F",
+      "primaryNavy": "#1D3557",
+      "gradient": "linear-gradient(135deg, #E63946 0%, #F4A261 50%, #2A9D8F 100%)",
+      "background": "linear-gradient(135deg, #F8FAFC 0%, #FFFFFF 100%)"
+    },
+    "items": [
+      {
+        "number": "01",
+        "title": "Residential Lighting",
+        "description": "Coming home to a beautifully lit house makes the holidays even more special. We design and install custom residential displays tailored to your home and your style. From design to professional installation, we handle everything – so you can skip the ladders and tangled lights.",
+        "icon": "FaHome",
+        "color": "#10B981",
+        "features": [
+          "Gutter and roofline lighting",
+          "Tree & shrub lighting",
+          "Custom Design & Warrantied Installation",
+          "Removal and Storage Included"
+        ],
+        "image": "/images/gallery1.jpg",
+        "stat": "500+ Homes"
+      },
+      {
+        "number": "02",
+        "title": "Commercial Lighting",
+        "description": "Make your business stand out this season with professional holiday lighting. We design and install custom commercial displays tailored to your property and brand, helping you welcome customers and spread seasonal cheer.",
+        "icon": "FaBuilding",
+        "color": "#3B82F6",
+        "features": [
+          "Gutter and roofline lighting",
+          "Tree & shrub lighting",
+          "Custom Design & Warrantied Installation",
+          "Removal and Storage Included"
+        ],
+        "image": "/images/commericaldemo.JPEG",
+        "stat": "100+ Businesses"
+      },
+      {
+        "number": "03",
+        "title": "Permanent Lighting",
+        "description": "Upgrade your home with permanent lighting you can enjoy all year long. Custom systems perfect for everyday curb appeal, holidays, game days, and special occasions — all controlled right from your phone.",
+        "icon": "FaStar",
+        "color": "#F59E0B",
+        "features": [
+          "Fast and efficient installation",
+          "Endless customization from your phone",
+          "Durable and weather resistant",
+          "Year-round curb appeal"
+        ],
+        "image": "/images/permenantlighting.jpg",
+        "stat": "Custom Designs"
+      }
+    ]
+  },
+  "workShowcase": {
+    "badge": "Featured Installations",
+    "title": {
+      "prefix": "Our Holiday",
+      "main": "Masterpieces"
+    },
+    "description": "Professional Christmas lighting installations that transform ordinary homes into magical holiday destinations",
+    "cta": "View Our Portfolio",
+    "images": [
+      
+     
+    ]
+  },
+  "howWeWork": {
+    "badge": "Simple Process",
+    "title": {
+      "text": "Couldn't Be Easier",
+      "prefix": "Working With Us"
+    },
+    "subtitle": "Get Professional Christmas Lighting In Just <strong>3 Easy Steps</strong>",
+    "steps": [
+      {
+        "number": "01",
+        "title": "Get A Quote",
+        "description": "We've made getting professional lighting services as simple as possible. Fill out our quote request form or call us at (614) 301-7100. We will receive your request, look at your property information, and get back to you within 24-48 hours with multiple pricing options.",
+        "icon": "FaQuoteRight",
+        "color": "#10B981",
+        "features": [
+          "Fill out form or call (614) 301-7100",
+          "24-48 hour turnaround",
+          "Multiple pricing options"
+        ]
+      },
+      {
+        "number": "02",
+        "title": "Get Scheduled",
+        "description": "Once you've received our lighting package options and have chosen the one that fits your needs, we can then get your project booked right away! We offer flexible installation dates and work around your schedule to ensure our service fits perfectly with your availability.",
+        "icon": "FaCalendarCheck",
+        "color": "#F59E0B",
+        "features": [
+          "Flexible installation dates",
+          "We work around your schedule",
+          "Quick booking process"
+        ]
+      },
+      {
+        "number": "03",
+        "title": "Sit Back and Relax",
+        "description": "Once you're on the schedule, you can sit back and relax. Our all-inclusive lighting services mean you don't have to do a single thing. Installations take 3-8 hours depending on home size, and we handle takedown and storage after the holiday season.",
+        "icon": "FaChair",
+        "color": "#EF4444",
+        "features": [
+          "All-inclusive – no work required",
+          "Installation in 3-8 hours",
+          "Takedown and storage included"
+        ]
+      }
+    ],
+    "cta": {
+      "title": "Ready to Light Up Your Holidays?",
+      "description": "Start with a free, no-obligation quote today. Call us at (614) 301-7100 or fill out our quick form!",
+      "buttons": {
+        "primary": "Call Us (614) 301-7100",
+        "secondary": "Schedule Consultation"
+      }
+    }
+  },
+  "faq": {
+    "badge": "Frequently Asked Questions",
+    "title": "Questions & Answers",
+    "subtitle": "Everything you need to know about our premium holiday lighting services. Can't find your answer?",
+    "phone": "(614) 301-7100",
+    "items": [
+      {
+        "question": "What services are included with professional Christmas light installation?",
+        "answer": "Our professional installation includes custom lighting design tailored to your home or business, all Christmas lights and décor provided and professionally installed, ongoing maintenance throughout the holiday season, full takedown after the season ends, and all lights removed and stored at our facility — no storage required on your end.",
+        "icon": "FaConciergeBell",
+        "category": "Service",
+        "features": [
+          "Custom Design",
+          "Lights & Décor Provided",
+          "Ongoing Maintenance",
+          "Full Takedown",
+          "Free Storage"
+        ]
+      },
+      {
+        "question": "What kind of lights do you install?",
+        "answer": "We install two types of lighting: Seasonal Lighting – commercial-grade C9 LED bulbs that are 3x brighter than anything you'll find at a big-box store, with every display custom-fit to your home. Permanent Lighting – Invisilights permanent lighting systems.",
+        "icon": "FaLightbulb",
+        "category": "Products",
+        "features": [
+          "Commercial-Grade C9 LED",
+          "3x Brighter",
+          "Custom-Fit Displays",
+          "Invisilights Permanent"
+        ]
+      },
+      {
+        "question": "Am I buying the lights?",
+        "answer": "● Seasonal Lighting - No. All seasonal lights and décor are leased and maintained by our team, so you never have to worry about repairs, storage, or climbing ladders. If anything needs attention during the season, we handle it. ● Permanent Lighting – Yes. Permanent lighting systems are purchased and professionally installed on your home.",
+        "icon": "FaFileContract",
+        "category": "Pricing",
+        "features": [
+          "Seasonal: Lease",
+          "Permanent: Purchase",
+          "No Repairs Needed",
+          "No Storage Required"
+        ]
+      },
+      {
+        "question": "Do you install the lights I own?",
+        "answer": "We don't — and here's why: we use professional-grade Christmas lighting on every project so we can guarantee quality, safety, and reliability all season long.",
+        "icon": "FaTools",
+        "category": "Installation",
+        "features": [
+          "Professional Grade Only",
+          "Quality Guarantee",
+          "Safety First",
+          "Reliability"
+        ]
+      },
+      {
+        "question": "Are any discounts available?",
+        "answer": "Yes, we offer discounts for installations completed before November, as well as loyalty discounts for continuous years of service.",
+        "icon": "FaPercent",
+        "category": "Pricing",
+        "features": [
+          "Early Bird Discounts",
+          "Loyalty Discounts",
+          "Pre-November Savings",
+          "Repeat Customer Benefits"
+        ]
+      }
+    ]
+  },
+  "cta": {
+    "title": {
+      "line1": "Make This Christmas",
+      "line2": "Unforgettably Magical"
+    },
+    "description": "Professional Christmas light installation and decoration services",
+    "button": "Get Your Free Quote Now",
+    "socialProof": {
+      "clients": "500+ Happy Clients",
+      "rating": "4.9/5 Rating"
+    }
+  },
+  "contact": {
+    "phone": "(614) 301-7100",
+    "email": "info@christmaslights.com",
+    "address": "123 Christmas Lane, North Pole",
+    "hours": "Mon-Sun: 8am-8pm"
+  },
+  "modernServices": {
+    "badge": "Premium Services test",
+    "title": {
+      "text": "Holiday Lighting",
+      "prefix": "Professional"
+    },
+    "subtitle": "Transform your home into a captivating holiday showcase with our expert lighting installation. Professional service, premium quality, and unforgettable designs.",
+    "items": [
+      {
+        "number": "01",
+        "title": "Residential Lighting",
+        "description": "Complete home transformation with custom-designed lighting displays that enhance your property's architectural features and create magical holiday memories.",
+        "icon": "FaHome",
+        "color": "#10B981",
+        "features": [
+          "Roofline & Gutter Lighting",
+          "Tree & Shrub Wrapping",
+          "Pathway Illumination",
+          "Custom Holiday Scenes"
+        ],
+        "image": "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=800&q=80",
+        "stat": "500+ Homes"
+      },
+      {
+        "number": "02",
+        "title": "Commercial & Corporate",
+        "description": "Professional holiday displays that attract customers, boost brand visibility, and showcase your business's festive spirit to the community.",
+        "icon": "FaBuilding",
+        "color": "#3B82F6",
+        "features": [
+          "Building Facade Lighting",
+          "Parking Lot Illumination",
+          "Branded Displays",
+          "High-Traffic Area Focus"
+        ],
+        "image": "https://images.unsplash.com/photo-1542672885-712dd1f0d3be?auto=format&fit=crop&w=800&q=80",
+        "stat": "100+ Businesses"
+      },
+      {
+        "number": "03",
+        "title": "Landscape & Architectural",
+        "description": "Strategic lighting that highlights your property's natural beauty and architectural details, creating stunning visual compositions day and night.",
+        "icon": "FaTree",
+        "color": "#F59E0B",
+        "features": [
+          "Tree Canopy Lighting",
+          "Garden Feature Highlights",
+          "Architectural Accent Lighting",
+          "Water Feature Illumination"
+        ],
+        "image": "https://images.unsplash.com/photo-1482517967863-00e15c9b44be?auto=format&fit=crop&w=800&q=80",
+        "stat": "Custom Designs"
+      },
+      {
+        "number": "04",
+        "title": "Premium Custom Displays",
+        "description": "One-of-a-kind lighting installations designed specifically for your property and vision, featuring advanced technology and creative design.",
+        "icon": "FaStar",
+        "color": "#8B5CF6",
+        "features": [
+          "Animated Light Shows",
+          "Musical Synchronization",
+          "Themed Installations",
+          "Interactive Elements"
+        ],
+        "image": "https://images.unsplash.com/photo-1577303935007-0d306ee638cf?auto=format&fit=crop&w=800&q=80",
+        "stat": "Award Winning"
+      }
+    ]
+  },
+  "vanMapSection": {
+    "badge": "Premium Service Network",
+    "title": {
+      "prefix": "Fast Local",
+      "text": "Holiday Service"
+    },
+    "subtitle": "Professional Christmas lighting service delivered right at your doorstep",
+    "steps": [
+      {
+        "number": "01",
+        "title": "Multiple Locations",
+        "description": "With strategically located stores across the region, we deliver premium service right at your doorstep—fast, reliable, and professional.",
+        "icon": "FaMapMarkerAlt",
+        "color": "#EF4444",
+        "features": [
+          "4+ store locations",
+          "Local service teams",
+          "Fast response times"
+        ]
+      },
+      {
+        "number": "02",
+        "title": "24/7 Availability",
+        "description": "Our dedicated team is available around the clock to handle your Christmas lighting needs, ensuring timely service whenever you need it.",
+        "icon": "FaClock",
+        "color": "#F59E0B",
+        "features": [
+          "Always available",
+          "Emergency services",
+          "Flexible scheduling"
+        ]
+      },
+      {
+        "number": "03",
+        "title": "Fast Response",
+        "description": "We pride ourselves on quick response times with an average of 30 minutes from inquiry to on-site assessment for your lighting project.",
+        "icon": "FaCar",
+        "color": "#10B981",
+        "features": [
+          "30min avg response",
+          "Quick assessments",
+          "Rapid installation"
+        ]
+      }
+    ]
+  },
+  "quoteForm": {
+    "badge": "INSTANT QUOTE • NO COMMITMENT",
+    "title": "Get Your Custom Quote",
+    "subtitle": "Complete this form for a personalized quote. Our experts will contact you within 24 hours.",
+    "services": [
+      {
+        "id": "design",
+        "name": "Lighting Design",
+        "color": "#DC2626"
+      },
+      {
+        "id": "installation",
+        "name": "Full Installation",
+        "color": "#F59E0B"
+      },
+      {
+        "id": "removal",
+        "name": "Post-Holiday Removal",
+        "color": "#10B981"
+      },
+      {
+        "id": "maintenance",
+        "name": "Maintenance",
+        "color": "#3B82F6"
+      },
+      {
+        "id": "custom",
+        "name": "Custom Themes",
+        "color": "#8B5CF6"
+      },
+      {
+        "id": "emergency",
+        "name": "Emergency Repair",
+        "color": "#EF4444"
+      }
+    ],
+    "contactInfo": {
+      "phone": "(614) 301-7100",
+      "email": "quote@example.com",
+      "hours": "Mon-Fri: 8AM-6PM",
+      "support": "24/7 Support"
+    },
+    "benefits": [
+      {
+        "text": "Free Consultation",
+        "color": "text-black"
+      },
+      {
+        "text": "Professional design service",
+        "color": "text-black"
+      },
+      {
+        "text": "Quality LED lighting",
+        "color": "text-black"
+      },
+      {
+        "text": "Flexible scheduling",
+        "color": "text-black"
+      }
+    ],
+    "stats": [
+      {
+        "value": "24h",
+        "label": "Response Time",
+        "color": "text-amber-600"
+      },
+      {
+        "value": "500+",
+        "label": "Happy Clients",
+        "color": "text-emerald-600"
+      },
+      {
+        "value": "4.9★",
+        "label": "Rating",
+        "color": "text-red-600"
+      },
+      {
+        "value": "100%",
+        "label": "Satisfaction",
+        "color": "text-black"
+      }
+    ]
+  },
+  "testimonials": {
+    "badge": "★ Customer Stories",
+    "title": {
+      "line1": "What Our",
+      "line2": "Clients Say"
+    },
+    "subtitle": "Discover why homeowners and businesses trust us to transform their spaces into magical holiday experiences.",
+    "items": [
+      {
+        "id": 1,
+        "quote": "Working with this team transformed our holiday display completely. The attention to detail and creative lighting solutions exceeded all our expectations.",
+        "author": "Sarah Johnson",
+        "role": "Homeowner",
+        "company": "Maple Street Residence",
+        "rating": 5,
+        "image": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
+        "location": "Portland, OR",
+        "service": "Residential Lighting"
+      },
+      {
+        "id": 2,
+        "quote": "Professional, punctual, and absolutely stunning results. They turned our commercial property into a winter wonderland that attracted customers from miles around.",
+        "author": "Michael Chen",
+        "role": "Property Manager",
+        "company": "Grand Plaza Mall",
+        "rating": 5,
+        "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+        "location": "Seattle, WA",
+        "service": "Commercial & Corporate"
+      },
+      {
+        "id": 3,
+        "quote": "As a busy family, we didn't have time to decorate. This team made our Christmas magical with minimal disruption.",
+        "author": "Emily Rodriguez",
+        "role": "Marketing Director",
+        "company": "Tech Innovations Inc",
+        "rating": 5,
+        "image": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face",
+        "location": "San Francisco, CA",
+        "service": "Landscape Lighting"
+      },
+      {
+        "id": 4,
+        "quote": "The energy efficiency of their LED installations saved us 40% on our electricity bill compared to last year's decorations.",
+        "author": "Robert Williams",
+        "role": "Sustainability Officer",
+        "company": "Green Living Corp",
+        "rating": 5,
+        "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face",
+        "location": "Boulder, CO",
+        "service": "Premium Custom Display"
+      }
+    ]
+  },
+  "footer": {
+    "companyName": "Christmas Lights Over Columbus",
+    "year": 2026,
+    "contact": {
+      "phone": "(614) 301-7100",
+      "email": "info@lightsovercolumbus.com",
+      "address": "123 Holiday Lane, North Pole, 12345",
+      "hours": "Mon-Fri: 8AM-6PM",
+      "support": "24/7 Support"
+    },
+    "socialMedia": [
+      {
+        "icon": "FaFacebookF",
+        "label": "Facebook",
+        "href": "https://facebook.com",
+        "key": "facebook"
+      },
+      {
+        "icon": "FaInstagram",
+        "label": "Instagram",
+        "href": "https://instagram.com",
+        "key": "instagram"
+      },
+      {
+        "icon": "FaTwitter",
+        "label": "Twitter",
+        "href": "https://twitter.com",
+        "key": "twitter"
+      },
+      {
+        "icon": "BsPinterest",
+        "label": "Pinterest",
+        "href": "https://pinterest.com",
+        "key": "pinterest"
+      },
+      {
+        "icon": "SiTiktok",
+        "label": "TikTok",
+        "href": "https://tiktok.com",
+        "key": "tiktok"
+      }
+    ],
+    "links": {
+      "Services": [
+        {
+          "label": "Residential Lighting",
+          "href": "/services/residential-lighting"
+        },
+        {
+          "label": "Commercial Lighting",
+          "href": "/services/commercial-lighting"
+        },
+        {
+          "label": "Permanent Holiday Lighting",
+          "href": "/services/permanent-lighting"
+        }
+      ],
+      "Company": [
+        {
+          "label": "About Us",
+          "href": "/about"
+        },
+        {
+          "label": "Gallery",
+          "href": "/gallery"
+        },
+        {
+          "label": "Contact Us",
+          "href": "/contact"
+        }
+      ]
+    },
+    "location": {
+      "address": "123 Holiday Lane",
+      "cityState": "North Pole, 12345",
+      "description": "Serving the greater metropolitan area with professional holiday lighting installation & design.",
+      "mapUrl": "https://maps.google.com/?q=123+Holiday+Lane+North+Pole"
+    },
+    "certifications": "Licensed • Insured • Professional Installers • Free Estimates Available"
+  }
+}

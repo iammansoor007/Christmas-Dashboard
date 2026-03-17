@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@layer utilities {
+  .animate-twinkle-delay-1 {
+    animation-delay: 0.5s;
+  }
+
+  .animate-twinkle-delay-2 {
+    animation-delay: 1s;
+  }
+
+  .animate-twinkle-delay-3 {
+    animation-delay: 1.5s;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8),
+      0 0 20px rgba(255, 255, 255, 0.6),
+      0 0 30px rgba(255, 255, 255, 0.4);
+  }
+
+  .border-glow {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5),
+      inset 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+}
+
+/* Light string animation */
+.light-string {
+  position: relative;
+  overflow: hidden;
+}
+
+.light-string::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -100%;
+  width: 200%;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 215, 0, 0.8),
+      rgba(255, 215, 0, 1),
+      rgba(255, 215, 0, 0.8),
+      transparent);
+  animation: lightTravel 3s linear infinite;
+}
+
+@keyframes lightTravel {
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(50%);
+  }
+}
+
+/* Snowflakes */
+.snowflake {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  filter: blur(1px);
+  opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .light-string::before {
+    height: 1px;
+  }
+}
+
+/* Custom base styles */
+@layer base {
+  body {
+    @apply bg-dark-navy text-white font-body;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+}
+
+@keyframes treeFloat {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+    0 0 40px rgba(255, 215, 0, 0.3),
+    0 0 60px rgba(255, 215, 0, 0.1);
+}
+
+
+
+
+
+
+
+
+
+
+
+/* ===============================
+   HERO ALIGNMENT FIX (>= 800px)
+   =============================== */
+
+@media (min-width: 800px) {
+  .hero-content {
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  .hero-content .hero-badge {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .hero-content .hero-subtitle {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .hero-content .hero-features {
+    align-items: flex-start !important;
+  }
+
+  .hero-content .hero-features li {
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+
+  .hero-content .cta-container {
+    justify-content: flex-start !important;
+  }
+}
+
+
+
