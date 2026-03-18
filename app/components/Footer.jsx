@@ -1,4 +1,3 @@
-// components/Footer.jsx
 "use client";
 import { useState, useEffect, memo } from "react";
 import Link from "next/link";
@@ -11,21 +10,25 @@ import {
 } from "react-icons/fa";
 import { BsPinterest, BsFillTelephoneFill } from "react-icons/bs";
 import { SiTiktok } from "react-icons/si";
+import * as Icons from "react-icons/fa";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [lightPositions, setLightPositions] = useState([]);
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load data
+  // Load data from API
   useEffect(() => {
     const loadData = async () => {
       try {
-        const response = await fetch("/data.json");
+        const response = await fetch("/api/footer");
         const jsonData = await response.json();
         setData(jsonData);
       } catch (error) {
         console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -45,7 +48,13 @@ const Footer = () => {
     setLightPositions(positions);
   }, []);
 
-  if (!data) {
+  // Icon mapping
+  const getIcon = (iconName) => {
+    if (!iconName) return FaFacebookF;
+    return Icons[iconName] || FaFacebookF;
+  };
+
+  if (loading) {
     return (
       <footer className="bg-dark-navy border-t border-holiday-red/30 relative overflow-hidden">
         <div className="flex items-center justify-center min-h-[200px]">
@@ -55,23 +64,27 @@ const Footer = () => {
     );
   }
 
-  const { footer } = data;
+  if (!data) {
+    return (
+      <footer className="bg-dark-navy border-t border-holiday-red/30 relative overflow-hidden">
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="text-white text-base px-4">No footer data found</div>
+        </div>
+      </footer>
+    );
+  }
+
   const {
     companyName,
     year = currentYear,
+    logo,
     contact,
     socialMedia,
     links,
     certifications,
-  } = footer;
-
-  const iconMap = {
-    FaFacebookF: FaFacebookF,
-    FaInstagram: FaInstagram,
-    FaTwitter: FaTwitter,
-    BsPinterest: BsPinterest,
-    SiTiktok: SiTiktok,
-  };
+    copyrightText,
+    designedBy
+  } = data;
 
   return (
     <footer className="bg-dark-navy border-t border-holiday-red/30 relative overflow-hidden">
@@ -107,49 +120,58 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Main Container - Responsive padding from 300px up */}
+      {/* Main Container */}
       <div className="w-full mx-auto px-4 py-8 sm:px-6 sm:py-10 md:px-8 md:py-12 lg:px-12 lg:py-16 xl:px-16 2xl:px-20 relative z-10">
-        {/* Main Footer Content - Three columns layout */}
+        {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 mb-8 lg:mb-16">
           {/* Column 1: Brand Column - Logo only */}
           <div className="lg:col-span-3 flex flex-col items-center lg:items-start">
             <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36">
-              <Image
-                src="/images/mainlogo.png"
-                alt="Luminous Holiday Logo"
-                width={144}
-                height={144}
-                className="object-contain w-full h-full"
-                priority={false}
-                onError={(e) => {
-                  const target = e.target;
-                  target.onerror = null;
-                  target.style.display = "none";
-                  target.parentElement.innerHTML = `
-                    <div class="w-full h-full flex items-center justify-center bg-dark-navy rounded-xl border border-holiday-gold/20">
-                      <div class="text-center">
-                        <div class="text-2xl sm:text-3xl font-bold text-white">LH</div>
-                        <div class="text-xs sm:text-sm text-white/70">Logo</div>
+              {logo ? (
+                <Image
+                  src={logo}
+                  alt={`${companyName} Logo`}
+                  width={144}
+                  height={144}
+                  className="object-contain w-full h-full"
+                  priority={false}
+                  onError={(e) => {
+                    const target = e.target;
+                    target.onerror = null;
+                    target.style.display = "none";
+                    target.parentElement.innerHTML = `
+                      <div class="w-full h-full flex items-center justify-center bg-dark-navy rounded-xl border border-holiday-gold/20">
+                        <div class="text-center">
+                          <div class="text-2xl sm:text-3xl font-bold text-white">${companyName?.charAt(0) || 'LH'}</div>
+                          <div class="text-xs sm:text-sm text-white/70">Logo</div>
+                        </div>
                       </div>
-                    </div>
-                  `;
-                }}
-              />
+                    `;
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-dark-navy rounded-xl border border-holiday-gold/20">
+                  <div className="text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-white">{companyName?.charAt(0) || 'LH'}</div>
+                    <div className="text-xs sm:text-sm text-white/70">Logo</div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Column 2: Links/Services Column */}
           <div className="lg:col-span-5">
             <div className="grid grid-cols-2 gap-6 sm:gap-8">
-              {Object.entries(links).map(([category, linkItems]) => (
+              {links && Object.entries(links).map(([category, linkItems]) => (
                 <div key={`category-${category}`} className="col-span-1">
                   <h4 className="text-white font-semibold text-base sm:text-lg md:text-xl mb-3 pb-2 border-b border-holiday-gold/20 relative">
                     <span>{category}</span>
                     <div className="absolute bottom-0 left-0 w-12 h-0.5 bg-gradient-to-r from-holiday-red to-holiday-gold"></div>
                   </h4>
                   <ul className="space-y-2">
-                    {linkItems.map((link) => (
-                      <li key={`link-${link.label}`}>
+                    {linkItems?.map((link, idx) => (
+                      <li key={`link-${category}-${idx}`}>
                         <Link
                           href={link.href}
                           className="text-white/70 hover:text-holiday-gold transition-all duration-200 flex items-center group text-sm sm:text-base hover:pl-2"
@@ -165,80 +187,92 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Column 3: Get in Touch Column - Now in 3rd row/column */}
+          {/* Column 3: Get in Touch Column */}
           <div className="lg:col-span-4">
             <h3 className="text-white font-bold text-lg sm:text-xl md:text-2xl mb-4 text-center lg:text-left">
               Get in Touch
             </h3>
             <div className="space-y-4">
-              <div className="flex items-center space-x-3 text-white/80 group hover:text-white transition-colors duration-200">
-                <BsFillTelephoneFill className="text-holiday-gold flex-shrink-0 text-base sm:text-lg" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm sm:text-base break-words">
-                    {contact.phone}
-                  </div>
-                  <div className="text-xs sm:text-sm text-white/60">
-                    {contact.hours}
+              {contact?.phone && (
+                <div className="flex items-center space-x-3 text-white/80 group hover:text-white transition-colors duration-200">
+                  <BsFillTelephoneFill className="text-holiday-gold flex-shrink-0 text-base sm:text-lg" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm sm:text-base break-words">
+                      {contact.phone}
+                    </div>
+                    {contact?.hours && (
+                      <div className="text-xs sm:text-sm text-white/60">
+                        {contact.hours}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-center space-x-3 text-white/80 group hover:text-white transition-colors duration-200">
-                <FaEnvelope className="text-holiday-red flex-shrink-0 text-base sm:text-lg" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm sm:text-base break-words">
-                    {contact.email}
-                  </div>
-                  <div className="text-xs sm:text-sm text-white/60">
-                    {contact.support}
+              {contact?.email && (
+                <div className="flex items-center space-x-3 text-white/80 group hover:text-white transition-colors duration-200">
+                  <FaEnvelope className="text-holiday-red flex-shrink-0 text-base sm:text-lg" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm sm:text-base break-words">
+                      {contact.email}
+                    </div>
+                    {contact?.support && (
+                      <div className="text-xs sm:text-sm text-white/60">
+                        {contact.support}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar - Improved responsive layout */}
+        {/* Bottom Bar */}
         <div className="pt-6 sm:pt-8 lg:pt-12 border-t border-holiday-red/20">
-          {/* Social Media - Centered on mobile */}
-          <div className="mb-6">
-            <h4 className="text-white font-semibold text-base sm:text-lg mb-3 text-center lg:text-left">
-              Follow Our Journey
-            </h4>
-            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-              {socialMedia.map((social) => {
-                const IconComponent = iconMap[social.icon] || FaFacebookF;
-                return (
-                  <a
-                    key={social.key}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-lg border border-holiday-gold/30 bg-dark-navy/50 backdrop-blur-sm text-holiday-gold hover:bg-gradient-to-r hover:from-holiday-red hover:via-holiday-gold hover:to-holiday-red hover:text-dark-navy transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-holiday-gold/20 text-sm sm:text-base"
-                    aria-label={social.label}
-                  >
-                    <IconComponent />
-                  </a>
-                );
-              })}
+          {/* Social Media */}
+          {socialMedia && socialMedia.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-white font-semibold text-base sm:text-lg mb-3 text-center lg:text-left">
+                Follow Our Journey
+              </h4>
+              <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                {socialMedia.map((social) => {
+                  const IconComponent = getIcon(social.icon);
+                  return (
+                    <a
+                      key={social.key || social.label}
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-lg border border-holiday-gold/30 bg-dark-navy/50 backdrop-blur-sm text-holiday-gold hover:bg-gradient-to-r hover:from-holiday-red hover:via-holiday-gold hover:to-holiday-red hover:text-dark-navy transition-all duration-300 flex items-center justify-center hover:scale-110 hover:shadow-lg hover:shadow-holiday-gold/20 text-sm sm:text-base"
+                      aria-label={social.label}
+                    >
+                      <IconComponent />
+                    </a>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <div className="text-center sm:text-left">
               <p className="text-white/60 text-sm sm:text-base">
-                © {year} {companyName}. Designed by{" "}
-                <a
-                  href="https://mohsindesigns.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-white/80 hover:text-white transition-colors duration-300 font-medium hover:underline underline-offset-2"
-                >
-                  Mohsin Designs
-                </a>
-                . All rights reserved.
+                © {year || currentYear} {companyName}. {copyrightText || 'All rights reserved.'}
+                {designedBy?.name && (
+                  <> Designed by{" "}
+                  <a
+                    href={designedBy.url || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white/80 hover:text-white transition-colors duration-300 font-medium hover:underline underline-offset-2"
+                  >
+                    {designedBy.name}
+                  </a>
+                  .</>
+                )}
               </p>
-             
             </div>
 
             <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
@@ -254,16 +288,17 @@ const Footer = () => {
               >
                 Terms
               </Link>
-
             </div>
           </div>
 
           {/* Certifications */}
-          <div className="mt-6 sm:mt-8 text-center">
-            <p className="text-white/40 text-xs sm:text-sm px-4">
-              {certifications}
-            </p>
-          </div>
+          {certifications && (
+            <div className="mt-6 sm:mt-8 text-center">
+              <p className="text-white/40 text-xs sm:text-sm px-4">
+                {certifications}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -279,76 +314,24 @@ const Footer = () => {
           }
         }
 
-        /* 300px screen specific adjustments */
+        /* Responsive adjustments */
         @media (min-width: 300px) and (max-width: 399px) {
-          .container,
           .w-full {
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
           }
-          
           .text-sm {
             font-size: 0.8125rem !important;
           }
-          
           .text-base {
             font-size: 0.875rem !important;
           }
-          
           .text-lg {
             font-size: 1rem !important;
           }
-          
-          .text-xl {
-            font-size: 1.125rem !important;
-          }
-          
-          .gap-6 {
-            gap: 1rem !important;
-          }
-          
-          .space-y-6 {
-            margin-top: 1rem !important;
-          }
-          
           .w-10, .h-10 {
             width: 2.25rem !important;
             height: 2.25rem !important;
-          }
-          
-          .grid-cols-2 {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-          
-          .col-span-1 {
-            grid-column: span 1 !important;
-          }
-        }
-
-        /* 350px to 399px adjustments */
-        @media (min-width: 350px) and (max-width: 399px) {
-          .grid-cols-2 {
-            gap: 1.25rem !important;
-          }
-        }
-
-        /* 400px and above */
-        @media (min-width: 400px) {
-          .sm\\:grid-cols-3 {
-            grid-template-columns: repeat(3, 1fr) !important;
-          }
-        }
-
-        /* Large screen optimizations */
-        @media (min-width: 1536px) {
-          .container {
-            max-width: 80rem;
-          }
-        }
-
-        @media (min-width: 1920px) {
-          .container {
-            max-width: 90rem;
           }
         }
 

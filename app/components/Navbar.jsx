@@ -8,18 +8,37 @@ import Image from "next/image";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
-  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState({}); // Track multiple dropdowns
+  const [mobileServicesOpen, setMobileServicesOpen] = useState({}); // Track mobile dropdowns
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const pathname = usePathname();
   const navbarRef = useRef(null);
-  const dropdownRef = useRef(null);
-  const timeoutRef = useRef(null);
+  const dropdownRefs = useRef({}); // Refs for each dropdown
+  const timeoutRefs = useRef({}); // Timeouts for each dropdown
+
+  // Load data from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const response = await fetch("/api/navbar");
+        const jsonData = await response.json();
+        setData(jsonData);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
-    setServicesDropdownOpen(false);
-    setMobileServicesOpen(false);
+    setOpenDropdowns({});
+    setMobileServicesOpen({});
   }, [pathname]);
 
   // Close mobile menu when clicking outside
@@ -31,7 +50,7 @@ const Navbar = () => {
         !navbarRef.current.contains(event.target)
       ) {
         setIsOpen(false);
-        setMobileServicesOpen(false);
+        setMobileServicesOpen({});
       }
     };
 
@@ -42,14 +61,19 @@ const Navbar = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setServicesDropdownOpen(false);
-      }
+      // Check if click is outside any open dropdown
+      Object.keys(openDropdowns).forEach((key) => {
+        if (openDropdowns[key] &&
+          dropdownRefs.current[key] &&
+          !dropdownRefs.current[key].contains(event.target)) {
+          setOpenDropdowns(prev => ({ ...prev, [key]: false }));
+        }
+      });
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [openDropdowns]);
 
   // Add scroll effect with throttling
   useEffect(() => {
@@ -67,45 +91,10 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navItems = [
-    { path: "/", label: "Home" },
-    { path: "/about", label: "About" },
-    {
-      path: "/services",
-      label: "Services",
-      dropdown: [
-        {
-          path: "/services/residential-lighting",
-          label: "Residential Lighting",
-          description: "Custom home lighting solutions",
-          icon: "🏠"
-        },
-        {
-          path: "/services/commercial-lighting",
-          label: "Commercial Lighting",
-          description: "Professional business installations",
-          icon: "🏢"
-        },
-        {
-          path: "/services/permanent-lighting",
-          label: "Permanent Lighting",
-          description: "Year-round architectural lighting",
-          icon: "✨"
-        }
-      ]
-    },
-    { path: "/gallery", label: "Gallery" },
-    { path: "/service-area", label: "Service Area" },
-    { path: "/contact", label: "Contact" },
-  ];
-
   // Check if link is active
   const isActive = (path) => {
     if (path === "/") {
       return pathname === "/";
-    }
-    if (path === "/services") {
-      return pathname.startsWith("/services") && pathname !== "/service-area";
     }
     return pathname.startsWith(path);
   };
@@ -116,25 +105,56 @@ const Navbar = () => {
   };
 
   // Handle dropdown hover with delay
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+  const handleMouseEnter = (itemPath) => {
+    if (timeoutRefs.current[itemPath]) {
+      clearTimeout(timeoutRefs.current[itemPath]);
     }
-    setServicesDropdownOpen(true);
+    setOpenDropdowns(prev => ({ ...prev, [itemPath]: true }));
   };
 
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setServicesDropdownOpen(false);
+  const handleMouseLeave = (itemPath) => {
+    timeoutRefs.current[itemPath] = setTimeout(() => {
+      setOpenDropdowns(prev => ({ ...prev, [itemPath]: false }));
     }, 300);
   };
 
   // Toggle mobile services dropdown
-  const toggleMobileServices = (e) => {
+  const toggleMobileServices = (itemPath, e) => {
     e.preventDefault();
     e.stopPropagation();
-    setMobileServicesOpen(!mobileServicesOpen);
+    setMobileServicesOpen(prev => ({
+      ...prev,
+      [itemPath]: !prev[itemPath]
+    }));
   };
+
+  if (loading) {
+    return (
+      <nav className="sticky top-0 left-0 right-0 z-50 w-full bg-dark-navy/95 backdrop-blur-lg py-2">
+        <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+          <div className="flex items-center justify-between">
+            <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18"></div>
+            <div className="text-warm-white">Loading...</div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  if (!data) {
+    return (
+      <nav className="sticky top-0 left-0 right-0 z-50 w-full bg-dark-navy/95 backdrop-blur-lg py-2">
+        <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+          <div className="flex items-center justify-between">
+            <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18"></div>
+            <div className="text-warm-white">No navbar data</div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  const { logo, logoAlt, navItems, cta, contactInfo, colors } = data;
 
   return (
     <>
@@ -146,14 +166,20 @@ const Navbar = () => {
           onClick={() => setIsOpen(false)}
         >
           <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32">
-            <Image
-              src="/images/mainlogo.png"
-              alt="Luminous Holiday Logo"
-              fill
-              className="object-contain drop-shadow-xl"
-              sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, (max-width: 1024px) 128px, 144px"
-              priority
-            />
+            {logo ? (
+              <Image
+                src={logo}
+                alt={logoAlt || "Luminous Holiday Logo"}
+                fill
+                className="object-contain drop-shadow-xl"
+                sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, (max-width: 1024px) 128px, 144px"
+                priority
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-dark-navy rounded-xl border border-holiday-gold/20">
+                <span className="text-2xl font-bold text-white">LH</span>
+              </div>
+            )}
           </div>
         </Link>
       </div>
@@ -162,42 +188,42 @@ const Navbar = () => {
       <nav
         ref={navbarRef}
         className={`sticky top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${scrolled
-          ? "bg-dark-navy/95 backdrop-blur-lg shadow-lg shadow-holiday-gold/10 py-2"
-          : "bg-dark-navy/90 backdrop-blur-md py-3"
+            ? colors?.background || "bg-dark-navy/95 backdrop-blur-lg shadow-lg shadow-holiday-gold/10 py-2"
+            : "bg-dark-navy/90 backdrop-blur-md py-3"
           }`}
       >
         <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
           <div className="flex items-center justify-between">
-            {/* Empty div with original logo size for spacing */}
+            {/* Empty div for spacing */}
             <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18"></div>
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center justify-center flex-1 max-w-4xl mx-8">
               <div className="flex items-center space-x-1">
-                {navItems.map((item) =>
-                  item.dropdown ? (
+                {navItems?.map((item) => {
+                  const dropdownKey = item.path;
+                  const isDropdownOpen = openDropdowns[dropdownKey] || false;
+
+                  return item.dropdown && item.dropdown.length > 0 ? (
                     <div
                       key={item.path}
                       className="relative"
-                      ref={dropdownRef}
-                      onMouseEnter={handleMouseEnter}
-                      onMouseLeave={handleMouseLeave}
+                      ref={el => dropdownRefs.current[dropdownKey] = el}
+                      onMouseEnter={() => handleMouseEnter(dropdownKey)}
+                      onMouseLeave={() => handleMouseLeave(dropdownKey)}
                     >
-                      {/* FIXED: Changed from button to Link */}
                       <Link
                         href={item.path}
                         className={`relative px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 group flex items-center gap-1.5 ${isActive(item.path)
-                          ? "text-holiday-gold"
-                          : "text-warm-white hover:text-holiday-gold"
+                            ? colors?.active || "text-holiday-gold"
+                            : `${colors?.text || "text-warm-white"} hover:${colors?.hover || "text-holiday-gold"}`
                           }`}
                       >
                         <span className="relative z-10 whitespace-nowrap">
                           {item.label}
                         </span>
                         <svg
-                          className={`w-4 h-4 transition-all duration-300 ${servicesDropdownOpen
-                            ? "rotate-180 text-holiday-gold"
-                            : ""
+                          className={`w-4 h-4 transition-all duration-300 ${isDropdownOpen ? "rotate-180" : ""
                             }`}
                           fill="none"
                           stroke="currentColor"
@@ -217,9 +243,9 @@ const Navbar = () => {
 
                       {/* Desktop Dropdown Menu */}
                       <div
-                        className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 transition-all duration-300 transform origin-top ${servicesDropdownOpen
-                          ? "opacity-100 scale-100 pointer-events-auto"
-                          : "opacity-0 scale-95 pointer-events-none"
+                        className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 transition-all duration-300 transform origin-top ${isDropdownOpen
+                            ? "opacity-100 scale-100 pointer-events-auto"
+                            : "opacity-0 scale-95 pointer-events-none"
                           }`}
                       >
                         <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45 bg-gradient-to-br from-holiday-gold/30 to-holiday-red/30 backdrop-blur-sm"></div>
@@ -233,16 +259,14 @@ const Navbar = () => {
                               <Link
                                 key={dropdownItem.path}
                                 href={dropdownItem.path}
-                                className={`group/dropdown relative block rounded-lg transition-all duration-300 ${index !== item.dropdown.length - 1
-                                  ? "mb-1"
-                                  : ""
+                                className={`group/dropdown relative block rounded-lg transition-all duration-300 ${index !== item.dropdown.length - 1 ? "mb-1" : ""
                                   }`}
-                                onClick={() => setServicesDropdownOpen(false)}
+                                onClick={() => setOpenDropdowns(prev => ({ ...prev, [dropdownKey]: false }))}
                               >
                                 <div
                                   className={`absolute inset-0 rounded-lg transition-all duration-500 ${isDropdownItemActive(dropdownItem.path)
-                                    ? "bg-gradient-to-r from-holiday-red/20 to-holiday-gold/20"
-                                    : "opacity-0 group-hover/dropdown:opacity-100 group-hover/dropdown:bg-gradient-to-r group-hover/dropdown:from-holiday-red/10 group-hover/dropdown:to-holiday-gold/10"
+                                      ? "bg-gradient-to-r from-holiday-red/20 to-holiday-gold/20"
+                                      : "opacity-0 group-hover/dropdown:opacity-100 group-hover/dropdown:bg-gradient-to-r group-hover/dropdown:from-holiday-red/10 group-hover/dropdown:to-holiday-gold/10"
                                     }`}
                                 ></div>
 
@@ -253,8 +277,8 @@ const Navbar = () => {
                                 <div className="relative flex items-start gap-3 p-3">
                                   <div
                                     className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-all duration-300 ${isDropdownItemActive(dropdownItem.path)
-                                      ? "bg-gradient-to-br from-holiday-gold/20 to-holiday-red/20 text-holiday-gold"
-                                      : "bg-dark-navy/50 group-hover/dropdown:bg-holiday-gold/10"
+                                        ? "bg-gradient-to-br from-holiday-gold/20 to-holiday-red/20 text-holiday-gold"
+                                        : "bg-dark-navy/50 group-hover/dropdown:bg-holiday-gold/10"
                                       }`}
                                   >
                                     {dropdownItem.icon}
@@ -263,8 +287,8 @@ const Navbar = () => {
                                   <div className="flex-1">
                                     <div
                                       className={`text-sm font-semibold transition-colors duration-300 ${isDropdownItemActive(dropdownItem.path)
-                                        ? "text-holiday-gold"
-                                        : "text-warm-white group-hover/dropdown:text-holiday-gold"
+                                          ? "text-holiday-gold"
+                                          : "text-warm-white group-hover/dropdown:text-holiday-gold"
                                         }`}
                                     >
                                       {dropdownItem.label}
@@ -308,8 +332,8 @@ const Navbar = () => {
                       key={item.path}
                       href={item.path}
                       className={`relative px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 group ${isActive(item.path)
-                        ? "text-holiday-gold"
-                        : "text-warm-white hover:text-holiday-gold"
+                          ? colors?.active || "text-holiday-gold"
+                          : `${colors?.text || "text-warm-white"} hover:${colors?.hover || "text-holiday-gold"}`
                         }`}
                     >
                       <span className="relative z-10 whitespace-nowrap">
@@ -320,46 +344,45 @@ const Navbar = () => {
                       )}
                       <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-holiday-red/0 via-holiday-gold/0 to-holiday-green/0 group-hover:from-holiday-red/5 group-hover:via-holiday-gold/5 group-hover:to-holiday-green/5 transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
                     </Link>
-                  ),
-                )}
+                  );
+                })}
               </div>
             </div>
 
             {/* Desktop CTA Button */}
-            <div className="hidden lg:flex items-center flex-shrink-0">
-              <a
-                href="tel:+16143017100"
-                className="relative overflow-hidden group min-w-[140px] inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-holiday-red to-holiday-gold text-white font-semibold hover:shadow-lg transition-all duration-300"
-                onClick={(e) => {
-                  window.location.href = "tel:+16143017100";
-                }}
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  <svg
-                    className="w-4 h-4 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                    />
-                  </svg>
-                  <span className="truncate">Call Now (614) 301-7100</span>
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-holiday-red via-holiday-gold to-holiday-green opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
-              </a>
-            </div>
+            {cta && (
+              <div className="hidden lg:flex items-center flex-shrink-0">
+                <a
+                  href={`tel:${cta.phone?.replace(/\D/g, '')}`}
+                  className="relative overflow-hidden group min-w-[140px] inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-holiday-red to-holiday-gold text-white font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <svg
+                      className="w-4 h-4 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                      />
+                    </svg>
+                    <span className="truncate">{cta.text} {cta.phone}</span>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-holiday-red via-holiday-gold to-holiday-green opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+                </a>
+              </div>
+            )}
 
             {/* Mobile menu button */}
             <div className="lg:hidden flex items-center">
               <button
                 onClick={() => {
                   setIsOpen(!isOpen);
-                  if (!isOpen) setMobileServicesOpen(false);
+                  if (!isOpen) setMobileServicesOpen({});
                 }}
                 className="relative w-10 h-10 flex flex-col items-center justify-center group"
                 aria-label={isOpen ? "Close menu" : "Open menu"}
@@ -390,15 +413,17 @@ const Navbar = () => {
           >
             <div className="pt-4 pb-6 border-t border-holiday-gold/20">
               <div className="flex flex-col space-y-1">
-                {navItems.map((item) =>
-                  item.dropdown ? (
+                {navItems?.map((item) => {
+                  const dropdownKey = item.path;
+                  const isMobileDropdownOpen = mobileServicesOpen[dropdownKey] || false;
+
+                  return item.dropdown && item.dropdown.length > 0 ? (
                     <div key={item.path} className="flex flex-col">
-                      {/* Mobile Services Button */}
                       <button
-                        onClick={toggleMobileServices}
-                        className={`relative px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 flex items-center justify-between w-full ${isActive(item.path) || mobileServicesOpen
-                          ? "text-holiday-gold bg-gradient-to-r from-holiday-red/5 to-holiday-gold/5 border border-holiday-gold/20"
-                          : "text-warm-white hover:text-holiday-gold hover:bg-dark-navy/50"
+                        onClick={(e) => toggleMobileServices(dropdownKey, e)}
+                        className={`relative px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 flex items-center justify-between w-full ${isActive(item.path) || isMobileDropdownOpen
+                            ? "text-holiday-gold bg-gradient-to-r from-holiday-red/5 to-holiday-gold/5 border border-holiday-gold/20"
+                            : "text-warm-white hover:text-holiday-gold hover:bg-dark-navy/50"
                           }`}
                       >
                         <span className="truncate">{item.label}</span>
@@ -407,7 +432,7 @@ const Navbar = () => {
                             <div className="w-2 h-2 rounded-full bg-holiday-gold animate-pulse"></div>
                           )}
                           <svg
-                            className={`w-5 h-5 transition-transform duration-300 ${mobileServicesOpen ? "rotate-180" : ""
+                            className={`w-5 h-5 transition-transform duration-300 ${isMobileDropdownOpen ? "rotate-180" : ""
                               }`}
                             fill="none"
                             stroke="currentColor"
@@ -425,24 +450,24 @@ const Navbar = () => {
 
                       {/* Mobile Dropdown */}
                       <div
-                        className={`overflow-hidden transition-all duration-300 ${mobileServicesOpen ? "max-h-96 mt-2" : "max-h-0"
+                        className={`overflow-hidden transition-all duration-300 ${isMobileDropdownOpen ? "max-h-96 mt-2" : "max-h-0"
                           }`}
                       >
                         <div className="relative ml-4">
                           <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-holiday-gold/50 via-holiday-red/50 to-holiday-gold/50"></div>
 
                           <div className="pl-4 space-y-2">
-                            {item.dropdown.map((dropdownItem, index) => (
+                            {item.dropdown.map((dropdownItem) => (
                               <Link
                                 key={dropdownItem.path}
                                 href={dropdownItem.path}
                                 onClick={() => {
                                   setIsOpen(false);
-                                  setMobileServicesOpen(false);
+                                  setMobileServicesOpen({});
                                 }}
                                 className={`group relative block rounded-lg transition-all duration-300 overflow-hidden ${isDropdownItemActive(dropdownItem.path)
-                                  ? "bg-gradient-to-r from-holiday-red/20 to-holiday-gold/20"
-                                  : "hover:bg-dark-navy/50"
+                                    ? "bg-gradient-to-r from-holiday-red/20 to-holiday-gold/20"
+                                    : "hover:bg-dark-navy/50"
                                   }`}
                               >
                                 <div className="absolute inset-0 bg-gradient-to-r from-holiday-red/0 via-holiday-gold/0 to-holiday-green/0 group-hover:from-holiday-red/10 group-hover:via-holiday-gold/10 group-hover:to-holiday-green/10 transition-all duration-500"></div>
@@ -454,8 +479,8 @@ const Navbar = () => {
                                 <div className="relative flex items-start gap-3 p-3">
                                   <div
                                     className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all duration-300 ${isDropdownItemActive(dropdownItem.path)
-                                      ? "bg-gradient-to-br from-holiday-gold/30 to-holiday-red/30 text-holiday-gold"
-                                      : "bg-dark-navy/50 text-warm-white/70 group-hover:bg-holiday-gold/10 group-hover:text-holiday-gold"
+                                        ? "bg-gradient-to-br from-holiday-gold/30 to-holiday-red/30 text-holiday-gold"
+                                        : "bg-dark-navy/50 text-warm-white/70 group-hover:bg-holiday-gold/10 group-hover:text-holiday-gold"
                                       }`}
                                   >
                                     {dropdownItem.icon}
@@ -464,8 +489,8 @@ const Navbar = () => {
                                   <div className="flex-1">
                                     <div
                                       className={`text-sm font-semibold transition-colors duration-300 ${isDropdownItemActive(dropdownItem.path)
-                                        ? "text-holiday-gold"
-                                        : "text-warm-white group-hover:text-holiday-gold"
+                                          ? "text-holiday-gold"
+                                          : "text-warm-white group-hover:text-holiday-gold"
                                         }`}
                                     >
                                       {dropdownItem.label}
@@ -477,8 +502,8 @@ const Navbar = () => {
 
                                   <div
                                     className={`absolute top-1/2 right-3 -translate-y-1/2 transition-opacity duration-300 ${isDropdownItemActive(dropdownItem.path)
-                                      ? "opacity-100"
-                                      : "opacity-0 group-hover:opacity-100"
+                                        ? "opacity-100"
+                                        : "opacity-0 group-hover:opacity-100"
                                       }`}
                                   >
                                     <svg
@@ -490,10 +515,6 @@ const Navbar = () => {
                                     </svg>
                                   </div>
                                 </div>
-
-                                {index !== item.dropdown.length - 1 && (
-                                  <div className="absolute bottom-0 left-3 right-3 h-px bg-gradient-to-r from-transparent via-holiday-gold/20 to-transparent"></div>
-                                )}
                               </Link>
                             ))}
                           </div>
@@ -506,8 +527,8 @@ const Navbar = () => {
                       href={item.path}
                       onClick={() => setIsOpen(false)}
                       className={`relative px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 group ${isActive(item.path)
-                        ? "text-holiday-gold bg-gradient-to-r from-holiday-red/5 to-holiday-gold/5 border border-holiday-gold/20"
-                        : "text-warm-white hover:text-holiday-gold hover:bg-dark-navy/50"
+                          ? "text-holiday-gold bg-gradient-to-r from-holiday-red/5 to-holiday-gold/5 border border-holiday-gold/20"
+                          : "text-warm-white hover:text-holiday-gold hover:bg-dark-navy/50"
                         }`}
                     >
                       <div className="flex items-center justify-between">
@@ -517,46 +538,24 @@ const Navbar = () => {
                         )}
                       </div>
                     </Link>
-                  ),
-                )}
+                  );
+                })}
 
                 {/* Mobile CTA Section */}
-                <div className="pt-4 mt-2 border-t border-holiday-gold/20">
-                  <Button
-                    href="tel:+16143017100"
-                    variant="primary"
-                    className="w-full justify-center py-3 text-base"
-                    onClick={(e) => {
-                      setIsOpen(false);
-                      setMobileServicesOpen(false);
-                    }}
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <svg
-                        className="w-5 h-5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                        />
-                      </svg>
-                      Call Now (614) 301-7100
-                    </span>
-                  </Button>
-
-                  <div className="mt-4 pt-4 border-t border-holiday-gold/10">
-                    <div className="flex flex-col space-y-3 text-sm">
-                      <a
-                        href="mailto:Info@lightsovercolumbus.com"
-                        className="flex items-center gap-2 text-warm-white/80 hover:text-holiday-gold transition-colors px-1 py-2 rounded-lg hover:bg-dark-navy/30"
-                      >
+                {cta && (
+                  <div className="pt-4 mt-2 border-t border-holiday-gold/20">
+                    <Button
+                      href={`tel:${cta.phone?.replace(/\D/g, '')}`}
+                      variant="primary"
+                      className="w-full justify-center py-3 text-base"
+                      onClick={(e) => {
+                        setIsOpen(false);
+                        setMobileServicesOpen({});
+                      }}
+                    >
+                      <span className="flex items-center justify-center gap-2">
                         <svg
-                          className="w-4 h-4 flex-shrink-0"
+                          className="w-5 h-5 flex-shrink-0"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -565,16 +564,42 @@ const Navbar = () => {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                           />
                         </svg>
-                        <span className="truncate">
-                          Info@lightsovercolumbus.com
-                        </span>
-                      </a>
-                    </div>
+                        {cta.text} {cta.phone}
+                      </span>
+                    </Button>
+
+                    {contactInfo && (
+                      <div className="mt-4 pt-4 border-t border-holiday-gold/10">
+                        <div className="flex flex-col space-y-3 text-sm">
+                          <a
+                            href={`mailto:${contactInfo.email}`}
+                            className="flex items-center gap-2 text-warm-white/80 hover:text-holiday-gold transition-colors px-1 py-2 rounded-lg hover:bg-dark-navy/30"
+                          >
+                            <svg
+                              className="w-4 h-4 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
+                            </svg>
+                            <span className="truncate">
+                              {contactInfo.email}
+                            </span>
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

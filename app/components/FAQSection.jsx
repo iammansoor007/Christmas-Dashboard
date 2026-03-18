@@ -1,22 +1,39 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { FaPlus } from 'react-icons/fa'
-import { getFAQData } from '../services/dataService'
 
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState(0)
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
   const contentRefs = useRef([])
   const [heights, setHeights] = useState({})
-  const faqData = getFAQData()
-  const { title, items } = faqData
+
+  // Load data from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const response = await fetch('/api/faq')
+        const jsonData = await response.json()
+        setData(jsonData)
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
 
   // Measure and store heights on mount and window resize
   useEffect(() => {
+    if (!data?.items) return
+
     const measureHeights = () => {
       const newHeights = {}
       contentRefs.current.forEach((ref, index) => {
         if (ref) {
-          // Temporarily set height to auto to measure
           ref.style.height = 'auto'
           newHeights[index] = ref.scrollHeight
           ref.style.height = '0px'
@@ -25,24 +42,23 @@ const FAQSection = () => {
       setHeights(newHeights)
 
       // Set initial open item height
-      if (contentRefs.current[0]) {
+      if (contentRefs.current[0] && newHeights[0]) {
         contentRefs.current[0].style.height = newHeights[0] + 'px'
       }
     }
 
     measureHeights()
 
-    // Re-measure on window resize
     window.addEventListener('resize', measureHeights)
     return () => window.removeEventListener('resize', measureHeights)
-  }, [])
+  }, [data?.items])
 
   const toggleAccordion = (index) => {
     const currentRef = contentRefs.current[index]
     const prevIndex = openIndex
     const prevRef = prevIndex !== null ? contentRefs.current[prevIndex] : null
 
-    if (!currentRef) return
+    if (!currentRef || !heights[index]) return
 
     // If clicking the same item
     if (openIndex === index) {
@@ -56,7 +72,7 @@ const FAQSection = () => {
     }
 
     // Close previous item if exists
-    if (prevRef) {
+    if (prevRef && heights[prevIndex]) {
       prevRef.style.height = heights[prevIndex] + 'px'
       requestAnimationFrame(() => {
         prevRef.style.height = '0px'
@@ -67,6 +83,32 @@ const FAQSection = () => {
     currentRef.style.height = heights[index] + 'px'
     setOpenIndex(index)
   }
+
+  if (loading) {
+    return (
+      <section className="w-full bg-gray-50 py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-gray-600">Loading FAQs...</div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (!data || !data.items || data.items.length === 0) {
+    return (
+      <section className="w-full bg-gray-50 py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-gray-600">No FAQs found</div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  const { title, items } = data
 
   return (
     <section className="w-full bg-gray-50 py-24 px-6">

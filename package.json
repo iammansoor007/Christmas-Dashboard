@@ -11,7 +11,14 @@
     "seed-services": "node scripts/seed-services.js",
     "seed-christmas": "node scripts/seed-christmas-lighting.js",
     "seed-how-we-work": "node scripts/seed-how-we-work.js",
-    "seed-van-map": "node scripts/seed-van-map.js"
+    "seed-van-map": "node scripts/seed-van-map.js",
+    "seed-work-showcase": "node scripts/seed-work-showcase.js",
+    "seed-testimonials": "node scripts/seed-testimonials.js",
+    "seed-faq": "node scripts/seed-faq.js",
+    "seed-quote-form": "node scripts/seed-quote-form.js",
+    "seed-footer": "node scripts/seed-footer.js",
+    "seed-navbar": "node scripts/seed-navbar.js",
+    "seed-about": "node scripts/seed-about.js"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -30,7 +37,7 @@
     "nodemailer": "^8.0.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.6.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

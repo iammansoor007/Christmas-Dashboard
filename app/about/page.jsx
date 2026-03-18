@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import FAQ from '../components/FAQSection';
 import CallToAction from '../components/CallToAction'
 import ChristmasLightingMap from '../components/ChristmasLightingMap';
@@ -40,8 +41,24 @@ import {
   FaSpinner,
   FaTimes
 } from 'react-icons/fa';
-import { GiSparkles, GiFruitTree, GiCrystalGrowth, GiChristmasTree } from 'react-icons/gi';
+import { GiSparkles, GiFruitTree, GiCrystalGrowth } from 'react-icons/gi';
 import { HiOutlineSparkles } from 'react-icons/hi';
+import * as Icons from 'react-icons/fa';
+
+// Icon mapping
+const iconMap = {
+  FaCheckCircle, FaArrowRight, FaAward, FaMedal, FaShieldAlt, FaClock, FaStar,
+  FaUsers, FaTree, FaCalendarAlt, FaPhone, FaEnvelope, FaQuoteLeft, FaLightbulb,
+  FaHome, FaTools, FaBoxOpen, FaTag, FaQuestionCircle, FaGem, FaBuilding,
+  FaLeaf, FaPhoneAlt, FaMapMarkerAlt, FaHeart, FaRocket, FaUser, FaSpinner, FaTimes,
+  GiSparkles, GiFruitTree, GiCrystalGrowth, HiOutlineSparkles,
+  ...Icons
+};
+
+const getIcon = (iconName) => {
+  if (!iconName) return null;
+  return iconMap[iconName] || FaStar;
+};
 
 const AboutUs = () => {
   const [openFaq, setOpenFaq] = useState(null);
@@ -49,6 +66,7 @@ const AboutUs = () => {
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,11 +83,13 @@ const AboutUs = () => {
 
     const loadData = async () => {
       try {
-        const response = await fetch('/data.json');
+        const response = await fetch('/api/about');
         const jsonData = await response.json();
         setData(jsonData);
       } catch (error) {
         console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -92,8 +112,6 @@ const AboutUs = () => {
       }
     };
 
-
-
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('scroll', handleScroll);
 
@@ -103,25 +121,7 @@ const AboutUs = () => {
     };
   }, []);
 
-
-  if (!mounted) {
-    return null;
-  }
-
-  const handleCallClick = (e) => {
-    e.preventDefault();
-    if (data?.hero?.cta?.phone) {
-      // Remove any non-numeric characters except +
-      const phoneNumber = data.hero.cta.phone.replace(/[^\d+]/g, '');
-      window.location.href = `tel:${phoneNumber}`;
-    } else {
-      console.warn('Phone number not found in data.json');
-      // Fallback to contact page if no phone number
-      window.location.href = '/contact';
-    }
-  };
-
-  if (!data) {
+  if (!mounted || loading) {
     return (
       <section className="relative min-h-[90vh] flex items-center justify-center bg-[#0B1120]">
         <div className="relative">
@@ -131,9 +131,28 @@ const AboutUs = () => {
     );
   }
 
-  const { hero } = data;
+  if (!data) {
+    return (
+      <section className="relative min-h-[90vh] flex items-center justify-center bg-[#0B1120]">
+        <div className="text-white">No about page data found</div>
+      </section>
+    );
+  }
 
-  // ConsultationModal component - fixed all issues
+  const { hero, founder, stats, mission, values, cta, seo } = data;
+
+  // Handle CTA click
+  const handleCallClick = (e) => {
+    e.preventDefault();
+    if (hero?.cta?.phone) {
+      const phoneNumber = hero.cta.phone.replace(/[^\d+]/g, '');
+      window.location.href = `tel:${phoneNumber}`;
+    } else {
+      window.location.href = '/contact';
+    }
+  };
+
+  // ConsultationModal component (keep as is from your original)
   const ConsultationModal = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({
       name: '',
@@ -154,10 +173,8 @@ const AboutUs = () => {
     const scrollContainerRef = useRef(null);
     const initialFocusRef = useRef(null);
 
-    // Store scroll position when modal opens
     useEffect(() => {
       if (isOpen) {
-        // Store current scroll position
         const scrollY = window.scrollY;
         document.body.style.position = 'fixed';
         document.body.style.top = `-${scrollY}px`;
@@ -165,7 +182,6 @@ const AboutUs = () => {
         document.body.style.right = '0';
         document.body.style.width = '100%';
 
-        // Focus first input after modal is mounted
         setTimeout(() => {
           if (initialFocusRef.current) {
             initialFocusRef.current.focus();
@@ -174,7 +190,6 @@ const AboutUs = () => {
       }
 
       return () => {
-        // Restore scroll position when modal closes
         const scrollY = document.body.style.top;
         document.body.style.position = '';
         document.body.style.top = '';
@@ -188,7 +203,6 @@ const AboutUs = () => {
       };
     }, [isOpen]);
 
-    // Handle escape key
     useEffect(() => {
       const handleEscape = (e) => {
         if (e.key === 'Escape' && isOpen) {
@@ -200,20 +214,17 @@ const AboutUs = () => {
       return () => window.removeEventListener('keydown', handleEscape);
     }, [isOpen, onClose]);
 
-    // Handle backdrop click
     const handleBackdropClick = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) {
         onClose();
       }
     };
 
-    // Prevent scroll propagation - fixed
     const handleWheel = (e) => {
       if (scrollContainerRef.current) {
         const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
         e.stopPropagation();
 
-        // If at the top and trying to scroll up, or at bottom and trying to scroll down
         if (
           (scrollTop === 0 && e.deltaY < 0) ||
           (scrollTop + clientHeight >= scrollHeight && e.deltaY > 0)
@@ -236,7 +247,6 @@ const AboutUs = () => {
       setIsSubmitting(true);
       setError('');
 
-      // Simulate API call (replace with actual API)
       setTimeout(() => {
         setIsSubmitted(true);
         setTimeout(() => {
@@ -286,17 +296,14 @@ const AboutUs = () => {
         className="fixed inset-0 z-[9999] overflow-hidden"
         onClick={handleBackdropClick}
       >
-        {/* Backdrop with blur */}
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" />
 
-        {/* Modal Container */}
         <div className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
           <div
             ref={modalRef}
             className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl transform transition-all duration-300 pointer-events-auto max-h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
             <button
               onClick={onClose}
               className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
@@ -305,7 +312,6 @@ const AboutUs = () => {
               <FaTimes className="text-gray-600 w-4 h-4" />
             </button>
 
-            {/* Success View */}
             {isSubmitted ? (
               <div className="p-8 text-center overflow-y-auto min-h-[300px] flex flex-col items-center justify-center">
                 <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
@@ -320,7 +326,6 @@ const AboutUs = () => {
               </div>
             ) : (
               <>
-                {/* Header */}
                 <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 p-6 flex-shrink-0">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -333,7 +338,6 @@ const AboutUs = () => {
                   </div>
                 </div>
 
-                {/* Scrollable Form Container */}
                 <div
                   ref={scrollContainerRef}
                   className="flex-1 overflow-y-auto p-6"
@@ -347,9 +351,7 @@ const AboutUs = () => {
                       </div>
                     )}
 
-                    {/* Form Fields - All fields now have visible text */}
                     <div className="space-y-5">
-                      {/* Name */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           <FaUser className="inline mr-2 text-emerald-600" />
@@ -367,7 +369,6 @@ const AboutUs = () => {
                         />
                       </div>
 
-                      {/* Email */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           <FaEnvelope className="inline mr-2 text-emerald-600" />
@@ -384,7 +385,6 @@ const AboutUs = () => {
                         />
                       </div>
 
-                      {/* Phone */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           <FaPhoneAlt className="inline mr-2 text-emerald-600" />
@@ -401,7 +401,6 @@ const AboutUs = () => {
                         />
                       </div>
 
-                      {/* Address */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           <FaHome className="inline mr-2 text-emerald-600" />
@@ -418,7 +417,6 @@ const AboutUs = () => {
                         />
                       </div>
 
-                      {/* Service Type */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           <FaTree className="inline mr-2 text-emerald-600" />
@@ -439,7 +437,6 @@ const AboutUs = () => {
                         </select>
                       </div>
 
-                      {/* Preferred Date */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           <FaCalendarAlt className="inline mr-2 text-emerald-600" />
@@ -456,7 +453,6 @@ const AboutUs = () => {
                         />
                       </div>
 
-                      {/* Preferred Time */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           <FaClock className="inline mr-2 text-emerald-600" />
@@ -476,7 +472,6 @@ const AboutUs = () => {
                         </select>
                       </div>
 
-                      {/* How did you hear about us */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           How did you hear about us?
@@ -494,7 +489,6 @@ const AboutUs = () => {
                         </select>
                       </div>
 
-                      {/* Message */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                           Additional Details (Optional)
@@ -510,7 +504,6 @@ const AboutUs = () => {
                       </div>
                     </div>
 
-                    {/* Submit Button */}
                     <button
                       type="submit"
                       disabled={isSubmitting}
@@ -542,54 +535,19 @@ const AboutUs = () => {
     );
   };
 
-  // Founder information
-  const founder = {
-    name: 'Ethen',
-    role: 'Owner, Christmas Lights Over Columbus',
-    quote: "Hi, I'm Ethen, owner of Christmas Lights Over Columbus. We help families across Central Ohio create beautiful, welcoming holiday displays without the stress of ladders or tangled lights.",
-    expertise: 'Serving Central Ohio families',
-    philosophy: 'Making holiday memories stress-free',
-    company: 'Christmas Lights Over Columbus',
-    tagline: 'Installing Christmas lights. Serving your family.',
-    location: 'Central Ohio'
-  };
-
-  // CTA Content
-  const cta = {
-    title: 'Ready to Transform Your Home Into a Holiday Wonderland?',
-    description: 'Join hundreds of satisfied Central Ohio families who trust us to make their holiday lighting stress-free and spectacular. Get your free, no-obligation quote today!',
-    buttons: {
-      primary: 'Call Us Now: (614) 301-7100',
-      secondary: 'Schedule Free Consultation'
-    },
-    features: [
-      { icon: FaClock, text: 'Free Estimates' },
-      { icon: FaShieldAlt, text: 'Fully Insured' },
-      { icon: FaStar, text: '5-Star Service' }
-    ]
-  };
-
-  // Handle button click without page jump
-  const handleOpenModal = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsModalOpen(true);
-  };
-
   return (
     <main ref={mainRef} className="overflow-x-hidden w-full">
-      {/* Modal Component */}
       <ConsultationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
 
-      {/* Hero Section */}
+      {/* Hero Section - FULLY DYNAMIC */}
       <section
         ref={heroRef}
         className="relative min-h-[90vh] flex items-center w-full overflow-hidden"
       >
-        {/* Background Image with Parallax */}
+        {/* Background Image */}
         <div className="absolute inset-0">
           <div
             className="relative w-full h-full transition-transform duration-200 ease-out"
@@ -598,7 +556,7 @@ const AboutUs = () => {
             }}
           >
             <Image
-              src="/images/hero-background2.jpg"
+              src={hero?.backgroundImage || "/images/hero-background2.jpg"}
               alt="About Christmas Lights Over Columbus"
               fill
               className="object-cover"
@@ -608,7 +566,12 @@ const AboutUs = () => {
             />
           </div>
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-400/15 via-gray-900/90 to-red-500/30"></div>
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(to right, ${hero?.overlay?.from || 'rgba(245,158,11,0.15)'}, ${hero?.overlay?.to || 'rgba(17,24,39,0.9)'}, ${hero?.overlay?.from || 'rgba(239,68,68,0.3)'})`
+            }}
+          ></div>
         </div>
 
         {/* Animated orbs */}
@@ -626,8 +589,6 @@ const AboutUs = () => {
           }}></div>
         </div>
 
-
-
         {/* Scroll overlay */}
         <div
           className="absolute inset-0 bg-gradient-to-t from-[#0B1120] via-transparent to-transparent transition-opacity duration-300"
@@ -638,165 +599,227 @@ const AboutUs = () => {
         <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
           <div className="max-w-4xl mx-auto text-center">
 
-            {/* About Us Badge with animation */}
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-red-500/20 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8 animate-fade-up">
-              <HiOutlineSparkles className="w-4 h-4 text-amber-400" />
-              <span className="text-white/90 text-sm font-medium tracking-wider">ABOUT US</span>
-            </div>
+            {/* About Us Badge - DYNAMIC */}
+            {hero?.badge?.text && (
+              <div
+                className="inline-flex items-center gap-2 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8 animate-fade-up"
+                style={{
+                  background: hero.badge.backgroundColor || 'linear-gradient(to right, rgba(245,158,11,0.2), rgba(239,68,68,0.2))',
+                  color: hero.badge.textColor || 'white'
+                }}
+              >
+                {hero.badge.icon && getIcon(hero.badge.icon) && React.createElement(getIcon(hero.badge.icon), { className: "w-4 h-4" })}
+                <span className="text-sm font-medium tracking-wider">{hero.badge.text}</span>
+              </div>
+            )}
 
-            {/* Main Heading with animations */}
+            {/* Main Heading - DYNAMIC */}
             <h1 className="font-montserrat font-extrabold text-5xl sm:text-6xl lg:text-7xl text-white mb-6">
               <span className="block animate-title-slide-up">
-                GET TO KNOW{' '}
+                {hero?.title?.line1 || 'GET TO KNOW'}{' '}
               </span>
               <span className="block relative animate-title-slide-up animation-delay-200">
                 <span className="relative inline-block">
-                  <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-red-400 bg-[length:200%_200%] animate-gradient-x">
-                    YOUR LIGHTING TEAM
+                  <span
+                    className="relative z-10 text-transparent bg-clip-text bg-[length:200%_200%] animate-gradient-x"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, ${hero?.title?.gradientFrom || '#fbbf24'}, ${hero?.title?.gradientTo || '#ef4444'})`
+                    }}
+                  >
+                    {hero?.title?.highlighted || 'YOUR LIGHTING TEAM'}
                   </span>
                   <span className="absolute inset-0 bg-gradient-to-r from-amber-400/30 to-red-400/30 blur-3xl -z-10 scale-150"></span>
                 </span>
+                {hero?.title?.line2 && (
+                  <span className="block text-white/90 mt-2">{hero.title.line2}</span>
+                )}
               </span>
             </h1>
 
-            {/* Description with animation */}
+            {/* Description - DYNAMIC */}
             <p className="text-xl sm:text-2xl text-white/80 mb-10 leading-relaxed max-w-3xl mx-auto animate-fade-up animation-delay-400">
               {hero?.subtitle || "We're your neighbors in Central Ohio dedicated to making your holiday season magical and stress-free."}
             </p>
 
-            {/* CTA Buttons with animations */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-up animation-delay-600">
-              <button
-                onClick={handleCallClick}
-                className="relative overflow-hidden group inline-flex items-center justify-center px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-gradient-to-r from-yellow-500 to-red-500 text-white font-semibold rounded-lg hover:from-yellow-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base md:text-lg w-auto min-w-[140px] sm:min-w-[160px] md:min-w-[180px] cursor-pointer"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
-                  <HiOutlineSparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                  <span>{hero.cta.subtext || "Get My Free Quote"}</span>
-                  <FaArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
-              </button>
-            </div>
+            {/* CTA Buttons - DYNAMIC */}
+            {hero?.cta && (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-up animation-delay-600">
+                <button
+                  onClick={hero.cta.link ? () => window.location.href = hero.cta.link : handleCallClick}
+                  className="relative overflow-hidden group inline-flex items-center justify-center px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 bg-gradient-to-r from-yellow-500 to-red-500 text-white font-semibold rounded-lg hover:from-yellow-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base md:text-lg w-auto min-w-[140px] sm:min-w-[160px] md:min-w-[180px] cursor-pointer"
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
+                    {hero.cta.icon && getIcon(hero.cta.icon) && React.createElement(getIcon(hero.cta.icon), { className: "w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" })}
+                    <span>{hero.cta.text || "Get My Free Quote"}</span>
+                    <FaArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+                </button>
+              </div>
+            )}
 
-            {/* Trust badges with animation */}
+            {/* Trust badges - DYNAMIC */}
             {hero?.trustBadges && hero.trustBadges.length > 0 && (
               <div className="flex flex-wrap items-center justify-center gap-6 text-white/60 text-sm animate-fade-up animation-delay-800">
-                {hero.trustBadges.map((badge, index) => (
-                  <div key={index} className="flex items-center gap-2 hover:text-white/80 transition-colors duration-300">
-                    {badge.icon === 'shield' && <FaShieldAlt className="text-amber-400" />}
-                    {badge.icon === 'clock' && <FaClock className="text-amber-400" />}
-                    {badge.icon === 'medal' && <FaMedal className="text-amber-400" />}
-                    {badge.icon === 'star' && <FaStar className="text-amber-400" />}
-                    <span>{badge.text}</span>
-                  </div>
-                ))}
+                {hero.trustBadges.map((badge, index) => {
+                  const IconComponent = getIcon(badge.icon);
+                  return (
+                    <div key={index} className="flex items-center gap-2 hover:text-white/80 transition-colors duration-300">
+                      {IconComponent && <IconComponent className="text-amber-400" />}
+                      <span>{badge.text}</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* Founder Section with ID for anchor link */}
-      <section id="story" className="py-16 sm:py-20 md:py-24 bg-white relative overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(245,158,11,0.1) 1px, transparent 0)`,
-            backgroundSize: '50px 50px'
-          }}></div>
-        </div>
+      {/* Founder Section - FULLY DYNAMIC */}
+      {founder && (
+        <section id="story" className="py-16 sm:py-20 md:py-24 bg-white relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, rgba(245,158,11,0.1) 1px, transparent 0)`,
+              backgroundSize: '50px 50px'
+            }}></div>
+          </div>
 
-        <div className="container mx-auto px-4 sm:px-6 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
-              <div className="relative order-2 lg:order-1 text-center lg:text-left">
-                <div className="relative z-10">
-                  {/* Section badge - reduced bottom margin */}
-                  <div className="flex justify-center lg:justify-start mb-2 animate-fade-up">
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/10 to-red-500/10 backdrop-blur-sm border border-amber-200/30 rounded-full px-4 py-1.5">
-                      <FaAward className="w-3.5 h-3.5 text-amber-500" />
-                      <span className="text-amber-700 text-xs font-medium tracking-wider">INSTALLING CHRISTMAS LIGHTS</span>
-                    </div>
-                  </div>
+          <div className="container mx-auto px-4 sm:px-6 relative z-10">
+            <div className="max-w-6xl mx-auto">
+              <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 md:gap-16 items-center">
+                <div className="relative order-2 lg:order-1 text-center lg:text-left">
+                  <div className="relative z-10">
+                    {/* Section badge - DYNAMIC */}
+                    {founder.badge && (
+                      <div className="flex justify-center lg:justify-start mb-2 animate-fade-up">
+                        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/10 to-red-500/10 backdrop-blur-sm border border-amber-200/30 rounded-full px-4 py-1.5">
+                          {founder.badge.icon && getIcon(founder.badge.icon) && React.createElement(getIcon(founder.badge.icon), { className: "w-3.5 h-3.5 text-amber-500" })}
+                          <span className="text-amber-700 text-xs font-medium tracking-wider">{founder.badge.text}</span>
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Main heading - reduced top margin and adjusted spacing */}
-                  <h2 className="font-montserrat font-extrabold text-4xl sm:text-5xl lg:text-6xl text-gray-900 leading-tight animate-title-slide-up">
-                    <span className="block">Serving your</span>
-                    <span className="block relative -mt-1">
-                      <span className="relative inline-block">
-                        <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-red-500 bg-[length:200%_200%] animate-gradient-x">
-                          family
+                    {/* Main heading - DYNAMIC */}
+                    <h2 className="font-montserrat font-extrabold text-4xl sm:text-5xl lg:text-6xl text-gray-900 leading-tight animate-title-slide-up">
+                      <span className="block">{founder.title?.prefix || 'Serving your'}</span>
+                      <span className="block relative -mt-1">
+                        <span className="relative inline-block">
+                          <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-red-500 bg-[length:200%_200%] animate-gradient-x">
+                            {founder.title?.highlighted || 'family'}
+                          </span>
+                          <span className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-red-400/20 blur-3xl -z-10 scale-150"></span>
                         </span>
-                        <span className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-red-400/20 blur-3xl -z-10 scale-150"></span>
                       </span>
-                    </span>
-                  </h2>
+                    </h2>
 
-                  {/* Content with adjusted top spacing */}
-                  <div className="space-y-5 text-gray-600 leading-relaxed text-base sm:text-lg mt-4 animate-fade-up animation-delay-200">
-                    <p className="text-lg sm:text-xl text-gray-700 ">
-                      <FaQuoteLeft className="inline-block w-4 h-4 text-amber-400 mr-1 opacity-50" />
-                      {founder.quote} < br />   From custom design and installation to takedown after the season, my team takes care of
-                      everything so you can focus on what truly matters—making memories and enjoying time with
-                      the people you love.
-                    </p>
+                    {/* Content - DYNAMIC */}
+                    <div className="space-y-5 text-gray-600 leading-relaxed text-base sm:text-lg mt-4 animate-fade-up animation-delay-200">
+                      {founder.quote && (
+                        <p className="text-lg sm:text-xl text-gray-700">
+                          <FaQuoteLeft className="inline-block w-4 h-4 text-amber-400 mr-1 opacity-50" />
+                          {founder.quote}
+                        </p>
+                      )}
 
+                      {founder.description && (
+                        <p>{founder.description}</p>
+                      )}
 
-                    <div className="flex items-center justify-center lg:justify-start gap-3 pt-3 animate-fade-up animation-delay-400">
-                      <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <FaGem className="text-amber-600 text-lg" />
-                      </div>
-                      <div className="text-left">
-                        <div className="text-xs text-gray-500">Mission</div>
-                        <div className="text-base font-semibold text-gray-900">{founder.philosophy}</div>
+                      {/* Mission/Expertise items - DYNAMIC */}
+                      <div className="flex flex-col gap-3 pt-3">
+                        {founder.mission && (
+                          <div className="flex items-center justify-center lg:justify-start gap-3 animate-fade-up animation-delay-400">
+                            <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              {founder.mission.icon && getIcon(founder.mission.icon) && React.createElement(getIcon(founder.mission.icon), { className: "text-amber-600 text-lg" })}
+                            </div>
+                            <div className="text-left">
+                              <div className="text-xs text-gray-500">{founder.mission.label || 'Mission'}</div>
+                              <div className="text-base font-semibold text-gray-900">{founder.mission.value}</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {founder.expertise && (
+                          <div className="flex items-center justify-center lg:justify-start gap-3 animate-fade-up animation-delay-400">
+                            <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              {founder.expertise.icon && getIcon(founder.expertise.icon) && React.createElement(getIcon(founder.expertise.icon), { className: "text-amber-600 text-lg" })}
+                            </div>
+                            <div className="text-left">
+                              <div className="text-xs text-gray-500">{founder.expertise.label || 'Expertise'}</div>
+                              <div className="text-base font-semibold text-gray-900">{founder.expertise.value}</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {founder.philosophy && (
+                          <div className="flex items-center justify-center lg:justify-start gap-3 animate-fade-up animation-delay-400">
+                            <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              {founder.philosophy.icon && getIcon(founder.philosophy.icon) && React.createElement(getIcon(founder.philosophy.icon), { className: "text-amber-600 text-lg" })}
+                            </div>
+                            <div className="text-left">
+                              <div className="text-xs text-gray-500">{founder.philosophy.label || 'Philosophy'}</div>
+                              <div className="text-base font-semibold text-gray-900">{founder.philosophy.value}</div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
+
+                  {/* Decorative elements */}
+                  <div className="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 w-24 sm:w-32 h-24 sm:h-32 bg-gradient-to-br from-amber-100 to-red-100 rounded-full blur-3xl opacity-50 -z-10"></div>
                 </div>
 
-                {/* Decorative elements */}
-                <div className="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 w-24 sm:w-32 h-24 sm:h-32 bg-gradient-to-br from-amber-100 to-red-100 rounded-full blur-3xl opacity-50 -z-10"></div>
-              </div>
-
-              <div className="relative order-1 lg:order-2 animate-fade-up animation-delay-200">
-                <div className="relative">
-                  <div className="aspect-[4/5] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl">
-                    <Image
-                      src="/images/aboutownerfamily.JPEG?t=1"
-                      alt={founder.name}
-                      className="w-full h-full object-cover"
-                      width={800}
-                      height={1000}
-                      priority
-                      unoptimized
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
-                    />
-                  </div>
-
-                  {/* Experience badge */}
-                  <div className="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 bg-white/90 backdrop-blur-sm p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl shadow-xl max-w-[200px] sm:max-w-xs hidden lg:block border border-amber-100">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                      <FaCalendarAlt className="text-amber-500 text-base sm:text-lg md:text-xl" />
-                      <span className="text-xs sm:text-xs font-medium text-gray-600">Serving</span>
+                <div className="relative order-1 lg:order-2 animate-fade-up animation-delay-200">
+                  <div className="relative">
+                    <div className="aspect-[4/5] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl">
+                      <Image
+                        src={founder.image || "/images/aboutownerfamily.JPEG"}
+                        alt={founder.imageAlt || founder.name || "Founder"}
+                        className="w-full h-full object-cover"
+                        width={800}
+                        height={1000}
+                        priority
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+                      />
                     </div>
-                    <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">{founder.expertise}</div>
-                  </div>
 
-                  {/* Decorative gradient */}
-                  <div className="absolute -top-4 sm:-top-6 -right-4 sm:-right-6 w-32 sm:w-48 h-32 sm:h-48 bg-gradient-to-br from-amber-500/10 to-red-500/10 rounded-full blur-3xl"></div>
+                    {/* Experience badge - DYNAMIC */}
+                    {founder.experienceBadge && (
+                      <div
+                        className="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 backdrop-blur-sm p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl shadow-xl max-w-[200px] sm:max-w-xs hidden lg:block border"
+                        style={{
+                          backgroundColor: founder.experienceBadge.backgroundColor || 'rgba(255,255,255,0.9)',
+                          borderColor: 'rgb(254,243,199)'
+                        }}
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                          {founder.experienceBadge.icon && getIcon(founder.experienceBadge.icon) && React.createElement(getIcon(founder.experienceBadge.icon), { className: "text-amber-500 text-base sm:text-lg md:text-xl" })}
+                          <span className="text-xs sm:text-xs font-medium text-gray-600">{founder.experienceBadge.label || 'Serving'}</span>
+                        </div>
+                        <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">{founder.experienceBadge.value}</div>
+                      </div>
+                    )}
+
+                    {/* Decorative gradient */}
+                    <div className="absolute -top-4 sm:-top-6 -right-4 sm:-right-6 w-32 sm:w-48 h-32 sm:h-48 bg-gradient-to-br from-amber-500/10 to-red-500/10 rounded-full blur-3xl"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <ChristmasLightingMap />
-      {/* FAQ Section */}
       <FAQ />
 
-      <section className="sm:-mt-12 lg:-mt-16 sm:p-6  lg:p-12 bg-gray-50"> <CallToAction /></section>
+      <section className="sm:-mt-12 lg:-mt-16 sm:p-6 lg:p-12 bg-gray-50">
+        <CallToAction />
+      </section>
 
       {/* Global Styles */}
       <style jsx global>{`

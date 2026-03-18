@@ -1,4 +1,3 @@
-// components/RefinedWorkShowcase.jsx
 "use client";
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -7,42 +6,24 @@ const RefinedWorkShowcase = () => {
   const containerRef = useRef(null);
   const [starPositions, setStarPositions] = useState([]);
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load data
+  // Load data from API
   useEffect(() => {
     const loadData = async () => {
       try {
-        const response = await fetch("/data.json");
+        const response = await fetch("/api/work-showcase");
         const jsonData = await response.json();
         setData(jsonData);
       } catch (error) {
         console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadData();
   }, []);
-
-  // Real images from public/images/gallery1.jpg to gallery14.jpg
-  const images = [
-    "/images/gallery1.jpg",
-    "/images/gallery2.jpg",
-    "/images/gallery3.jpg",
-    "/images/gallery4.jpg",
-    "/images/gallery5.jpg",
-    "/images/gallery6.jpg",
-    "/images/gallery7.jpg",
-    "/images/gallery8.jpg",
-    "/images/gallery9.jpg",
-    "/images/gallery10.jpg",
-    "/images/gallery11.jpg",
-    "/images/gallery12.jpg",
-    "/images/gallery13.jpg",
-    "/images/gallery14.jpg",
-  ];
-
-  // For infinite scroll, duplicate images multiple times
-  const duplicatedImages = [...images, ...images, ...images, ...images];
 
   // Generate star positions on client side only
   useEffect(() => {
@@ -57,7 +38,18 @@ const RefinedWorkShowcase = () => {
     setStarPositions(positions);
   }, []);
 
-  if (!data) {
+  // For infinite scroll, duplicate images multiple times
+  const getDuplicatedImages = () => {
+    if (!data?.images || data.images.length === 0) {
+      // Fallback images if none uploaded
+      return Array(12).fill("https://images.unsplash.com/photo-1575425187336-d5ec5d0a1451?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600");
+    }
+    return [...data.images, ...data.images, ...data.images, ...data.images];
+  };
+
+  const duplicatedImages = getDuplicatedImages();
+
+  if (loading) {
     return (
       <section className="relative w-full min-h-[600px] sm:min-h-screen bg-gradient-to-b from-dark-navy via-dark-navy/95 to-dark-navy overflow-hidden">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -67,8 +59,17 @@ const RefinedWorkShowcase = () => {
     );
   }
 
-  const { workShowcase } = data;
-  const { badge, title, description, cta } = workShowcase;
+  if (!data) {
+    return (
+      <section className="relative w-full min-h-[600px] sm:min-h-screen bg-gradient-to-b from-dark-navy via-dark-navy/95 to-dark-navy overflow-hidden">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-white">No data found</div>
+        </div>
+      </section>
+    );
+  }
+
+  const { badge, title, description, cta } = data;
 
   return (
     <section className="relative w-full min-h-[600px] sm:min-h-screen bg-gradient-to-b from-dark-navy via-dark-navy/95 to-dark-navy overflow-hidden">
@@ -135,7 +136,7 @@ const RefinedWorkShowcase = () => {
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 brightness-100 group-hover:brightness-125 saturate-125 group-hover:saturate-200 contrast-105 group-hover:contrast-125"
                     loading="lazy"
                     onError={(e) => {
-                      // Fallback image in case the gallery image doesn't exist
+                      // Fallback image in case the image doesn't exist
                       e.target.onerror = null;
                       e.target.src = `https://images.unsplash.com/photo-1575425187336-d5ec5d0a1451?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600`;
                     }}
@@ -182,7 +183,7 @@ const RefinedWorkShowcase = () => {
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 brightness-100 group-hover:brightness-125 saturate-125 group-hover:saturate-200 contrast-105 group-hover:contrast-125"
                     loading="lazy"
                     onError={(e) => {
-                      // Fallback image in case the gallery image doesn't exist
+                      // Fallback image in case the image doesn't exist
                       e.target.onerror = null;
                       e.target.src = `https://images.unsplash.com/photo-1575425187336-d5ec5d0a1451?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80&h=600`;
                     }}
@@ -229,12 +230,12 @@ const RefinedWorkShowcase = () => {
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-montserrat font-extrabold text-white mb-4 sm:mb-6 leading-tight"
           >
             <span className="block tracking-tight font-bold text-xl sm:text-2xl md:text-3xl lg:text-4xl">
-              {title.prefix}
+              {title?.prefix}
             </span>
             <span className="block mt-2 sm:mt-2">
               <span className="relative">
                 <span className="relative z-10 bg-gradient-to-r from-holiday-gold via-holiday-gold to-holiday-red bg-clip-text text-transparent">
-                  {title.main}
+                  {title?.main}
                 </span>
                 <svg
                   className="absolute -bottom-2 sm:-bottom-3 left-0 w-full h-3 sm:h-4 text-holiday-gold/30"
@@ -261,7 +262,7 @@ const RefinedWorkShowcase = () => {
             {description}
           </motion.p>
 
-          {/* FIXED CTA Button - No longer takes full width on mobile */}
+          {/* FIXED CTA Button */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -269,27 +270,77 @@ const RefinedWorkShowcase = () => {
             className="px-2"
           >
             <div className="group relative inline-block w-auto max-w-full">
-              <button
-                onClick={() => (window.location.href = "/gallery")}
-                className="relative px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 bg-gradient-to-r from-holiday-red via-holiday-red to-holiday-gold text-white font-bold rounded-xl hover:rounded-2xl transition-all duration-300 hover:shadow-xl sm:hover:shadow-2xl hover:shadow-holiday-red/30 transform hover:-translate-y-0.5 sm:hover:-translate-y-1 text-base sm:text-base md:text-xl w-full sm:w-auto min-w-[280px] sm:min-w-0"
-              >
-                <span className="flex items-center justify-center gap-2 sm:gap-3">
-                  <span>{cta}</span>
-                  <svg
-                    className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:translate-x-2 transition-transform duration-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              {cta?.link ? (
+                cta.link.startsWith('http') ? (
+                  <a
+                    href={cta.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 bg-gradient-to-r from-holiday-red via-holiday-red to-holiday-gold text-white font-bold rounded-xl hover:rounded-2xl transition-all duration-300 hover:shadow-xl sm:hover:shadow-2xl hover:shadow-holiday-red/30 transform hover:-translate-y-0.5 sm:hover:-translate-y-1 text-base sm:text-base md:text-xl w-full sm:w-auto min-w-[280px] sm:min-w-0 inline-block text-center"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
-                </span>
-              </button>
+                    <span className="flex items-center justify-center gap-2 sm:gap-3">
+                      <span>{cta.text}</span>
+                      <svg
+                        className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:translate-x-2 transition-transform duration-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </span>
+                  </a>
+                ) : (
+                  <a
+                    href={cta.link}
+                    className="relative px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 bg-gradient-to-r from-holiday-red via-holiday-red to-holiday-gold text-white font-bold rounded-xl hover:rounded-2xl transition-all duration-300 hover:shadow-xl sm:hover:shadow-2xl hover:shadow-holiday-red/30 transform hover:-translate-y-0.5 sm:hover:-translate-y-1 text-base sm:text-base md:text-xl w-full sm:w-auto min-w-[280px] sm:min-w-0 inline-block text-center"
+                  >
+                    <span className="flex items-center justify-center gap-2 sm:gap-3">
+                      <span>{cta.text}</span>
+                      <svg
+                        className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:translate-x-2 transition-transform duration-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </span>
+                  </a>
+                )
+              ) : (
+                <button
+                  onClick={() => (window.location.href = "/gallery")}
+                  className="relative px-6 sm:px-8 md:px-12 py-3 sm:py-4 md:py-5 bg-gradient-to-r from-holiday-red via-holiday-red to-holiday-gold text-white font-bold rounded-xl hover:rounded-2xl transition-all duration-300 hover:shadow-xl sm:hover:shadow-2xl hover:shadow-holiday-red/30 transform hover:-translate-y-0.5 sm:hover:-translate-y-1 text-base sm:text-base md:text-xl w-full sm:w-auto min-w-[280px] sm:min-w-0"
+                >
+                  <span className="flex items-center justify-center gap-2 sm:gap-3">
+                    <span>{cta?.text || "View Our Portfolio"}</span>
+                    <svg
+                      className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:translate-x-2 transition-transform duration-300"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 8l4 4m0 0l-4 4m4-4H3"
+                      />
+                    </svg>
+                  </span>
+                </button>
+              )}
 
               {/* Floating Sparkles */}
               <div className="absolute -top-2 -right-2 w-4 h-4 sm:w-4 sm:h-4 bg-holiday-gold rounded-full animate-ping opacity-50"></div>
@@ -375,7 +426,7 @@ const RefinedWorkShowcase = () => {
         }
 
         /* Touch-friendly tap targets */
-        button {
+        button, a {
           min-height: 48px;
         }
 

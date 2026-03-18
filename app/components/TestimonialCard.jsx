@@ -1,4 +1,3 @@
-// components/Testimonials.jsx
 "use client";
 
 import {
@@ -54,6 +53,7 @@ const Testimonials = () => {
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [activeStarCount, setActiveStarCount] = useState(0);
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const containerRef = useRef(null);
   const autoRotateTimerRef = useRef(null);
   const dragStartX = useRef(0);
@@ -61,24 +61,26 @@ const Testimonials = () => {
   const dragX = useMotionValue(0);
   const dragXSpring = useSpring(dragX, { stiffness: 250, damping: 25 });
 
-  // Load data
+  // Load data from API
   useEffect(() => {
     const loadData = async () => {
       try {
-        const response = await fetch("/data.json");
+        const response = await fetch("/api/testimonials");
         const jsonData = await response.json();
         setData(jsonData);
       } catch (error) {
         console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadData();
   }, []);
 
-  // Define testimonialsList here to avoid conditional useCallback
+  // Define testimonialsList
   const testimonialsList =
-    data?.testimonials?.items?.map((item, index) => ({
+    data?.items?.map((item, index) => ({
       ...item,
       color: getColorForIndex(index),
     })) || [];
@@ -97,10 +99,12 @@ const Testimonials = () => {
   }, []);
 
   const next = useCallback(() => {
+    if (testimonialsList.length === 0) return;
     setCurrent((prev) => (prev + 1) % testimonialsList.length);
   }, [testimonialsList.length]);
 
   const prev = useCallback(() => {
+    if (testimonialsList.length === 0) return;
     setCurrent(
       (prev) => (prev - 1 + testimonialsList.length) % testimonialsList.length,
     );
@@ -165,10 +169,10 @@ const Testimonials = () => {
   };
 
   const getCardStyle = (index) => {
+    if (testimonialsList.length === 0) return {};
+
     const diff = index - current;
     const total = testimonialsList.length;
-
-    if (total === 0) return {};
 
     let normalizedDiff = diff;
     if (diff > total / 2) normalizedDiff = diff - total;
@@ -248,7 +252,7 @@ const Testimonials = () => {
     );
   };
 
-  if (!data) {
+  if (loading) {
     return (
       <section className="py-8 lg:py-12 relative overflow-hidden bg-white">
         <div className="container mx-auto px-4 relative max-w-7xl">
@@ -260,10 +264,19 @@ const Testimonials = () => {
     );
   }
 
-  const { testimonials } = data;
-  const currentTestimonial = testimonialsList[current] || {
-    color: BRAND_COLORS.amber,
-  };
+  if (!data || testimonialsList.length === 0) {
+    return (
+      <section className="py-8 lg:py-12 relative overflow-hidden bg-white">
+        <div className="container mx-auto px-4 relative max-w-7xl">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-gray-600">No testimonials found</div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const currentTestimonial = testimonialsList[current];
 
   return (
     <section
@@ -277,19 +290,19 @@ const Testimonials = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600/10 via-amber-500/10 to-emerald-600/10 rounded-full shadow-sm mb-6 border border-amber-500/30">
             <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-              {testimonials.badge}
+              {data.badge}
             </span>
           </div>
 
           <h2 className="text-4xl font-montserrat md:text-5xl lg:text-6xl font-extrabold text-gray-900 mb-4">
-            <span className="block">{testimonials.title.line1}</span>
+            <span className="block">{data.title?.line1}</span>
             <span className="block mt-2 bg-gradient-to-r from-red-600 via-amber-500 to-emerald-600 bg-clip-text text-transparent">
-              {testimonials.title.line2}
+              {data.title?.line2}
             </span>
           </h2>
 
           <p className="text-lg md:text-xl font-montserrat text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            {testimonials.subtitle}
+            {data.subtitle}
           </p>
 
           {/* Decorative divider */}
@@ -317,7 +330,7 @@ const Testimonials = () => {
 
                   return (
                     <motion.div
-                      key={testimonial.id}
+                      key={testimonial.id || index}
                       className="absolute"
                       initial={false}
                       animate={style}
@@ -442,6 +455,10 @@ const Testimonials = () => {
                                     className="rounded-full object-cover w-full h-full border-2"
                                     style={{
                                       borderColor: testimonial.color + "30",
+                                    }}
+                                    onError={(e) => {
+                                      e.target.onerror = null;
+                                      e.target.src = `https://ui-avatars.com/api/?name=${testimonial.author}&background=${testimonial.color.substring(1)}&color=fff&size=56`;
                                     }}
                                   />
                                 </div>
