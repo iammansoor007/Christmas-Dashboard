@@ -1,13 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import QuickQuote from './components/QuickQuote';
-import SmoothScroll from './components/SmoothScroll'; // Import SmoothScroll
+import SmoothScroll from './components/SmoothScroll';
 
 export default function ClientLayout({ children }) {
     const [isClient, setIsClient] = useState(false);
+    const pathname = usePathname();
+
+    // Check if current route is admin
+    const isAdminRoute = pathname?.startsWith('/admin');
+
     const [snowflakes] = useState(() => {
         const flakes = [];
         for (let i = 0; i < 120; i++) {
@@ -28,8 +34,8 @@ export default function ClientLayout({ children }) {
 
     return (
         <>
-            {/* STABLE SNOWFALL - Never changes */}
-            {isClient && (
+            {/* SNOWFALL - Only on non-admin routes */}
+            {!isAdminRoute && isClient && (
                 <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden"
                     style={{ zIndex: 40 }}>
                     {snowflakes.map((flake) => (
@@ -50,20 +56,20 @@ export default function ClientLayout({ children }) {
                 </div>
             )}
 
-            {/* STABLE COMPONENTS - These NEVER re-render on navigation */}
-            <Navbar />
-            <QuickQuote />
+            {/* NAVBAR & QUICK QUOTE - Only on non-admin routes */}
+            {!isAdminRoute && <Navbar />}
+            {!isAdminRoute && <QuickQuote />}
 
-            {/* SMOOTH SCROLL WRAPPER - Added here */}
+            {/* SMOOTH SCROLL WRAPPER */}
             <SmoothScroll>
-                {/* PAGE CONTENT - ONLY this changes during navigation */}
-                <main className="min-h-screen">
+                {/* PAGE CONTENT */}
+                <main className={`min-h-screen ${isAdminRoute ? 'bg-gray-50' : ''}`}>
                     {children}
                 </main>
             </SmoothScroll>
 
-            {/* STABLE FOOTER - Never changes */}
-            <Footer />
+            {/* FOOTER - Only on non-admin routes */}
+            {!isAdminRoute && <Footer />}
 
             <style jsx global>{`
                 @keyframes snowfall {

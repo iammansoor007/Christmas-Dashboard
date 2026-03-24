@@ -32,6 +32,8 @@ import { GiSparkles } from 'react-icons/gi';
 import { HiOutlineSparkles } from 'react-icons/hi';
 
 const ConsultationModal = ({ isOpen, onClose }) => {
+  // Keep the same ConsultationModal from your original
+  // (I'll skip repeating it for brevity, but keep your existing one)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -432,25 +434,35 @@ const ConsultationModal = ({ isOpen, onClose }) => {
 const ServicesPage = () => {
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [data, setData] = useState(null);
+  const [pageData, setPageData] = useState(null);
+  const [servicesData, setServicesData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [imageErrors, setImageErrors] = useState({});
   const heroRef = useRef(null);
 
-  // Load data and initial setup
+  // Load data from both APIs
   useEffect(() => {
     setMounted(true);
     window.scrollTo(0, 0);
 
     const loadData = async () => {
       try {
-        const response = await fetch('/data.json');
-        const jsonData = await response.json();
-        setData(jsonData);
+        // Load Services Page data (hero, header, etc.)
+        const pageResponse = await fetch('/api/services-page');
+        const pageJson = await pageResponse.json();
+        setPageData(pageJson);
+
+        // Load Services items (reuse from homepage services)
+        const servicesResponse = await fetch('/api/services');
+        const servicesJson = await servicesResponse.json();
+        setServicesData(servicesJson);
       } catch (error) {
         console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -487,40 +499,15 @@ const ServicesPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Visibility handler for CTA animation
-  useEffect(() => {
-    const handleVisibility = () => {
-      const ctaSection = document.getElementById('cta-section');
-      if (ctaSection) {
-        const rect = ctaSection.getBoundingClientRect();
-        const isVisible = rect.top <= window.innerHeight * 0.75 && rect.bottom >= 0;
-        setIsVisible(isVisible);
-      }
-    };
-
-    window.addEventListener('scroll', handleVisibility);
-    handleVisibility();
-
-    return () => window.removeEventListener('scroll', handleVisibility);
-  }, []);
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
-
   const handleCallClick = () => {
-    window.location.href = 'tel:+16143017100';
+    window.location.href = `tel:${pageData?.hero?.cta?.phone || '+16143017100'}`;
   };
 
   const handleImageError = (index) => {
     setImageErrors(prev => ({ ...prev, [index]: true }));
   };
 
-  if (!mounted) {
-    return null;
-  }
-
-  if (!data) {
+  if (!mounted || loading) {
     return (
       <section className="relative min-h-[90vh] flex items-center justify-center bg-[#0B1120]">
         <div className="relative">
@@ -530,14 +517,31 @@ const ServicesPage = () => {
     );
   }
 
-  const { services, howWeWork } = data;
+  if (!pageData || !servicesData) {
+    return (
+      <section className="relative min-h-[90vh] flex items-center justify-center bg-[#0B1120]">
+        <div className="text-white text-center">
+          <p className="mb-4">No data found</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600"
+          >
+            Retry
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  const { hero, servicesHeader, bottomCta, seo } = pageData;
+  const services = servicesData.items;
 
   // Default placeholder image
   const placeholderImage = '/images/placeholder-service.jpg';
 
   return (
     <main className="overflow-x-hidden w-full">
-      {/* Hero Section */}
+      {/* Hero Section - DYNAMIC */}
       <section
         ref={heroRef}
         className="relative min-h-[90vh] flex items-center w-full overflow-hidden"
@@ -551,18 +555,22 @@ const ServicesPage = () => {
             }}
           >
             <Image
-              src="/images/hero-background2.jpg"
+              src={hero?.backgroundImage || "/images/hero-background2.jpg"}
               alt="Services - Christmas Lights Over Columbus"
               fill
               className="object-cover"
               priority
               sizes="100vw"
               quality={100}
-              onError={() => console.log('Hero image failed to load')}
             />
           </div>
-          {/* Gradient overlay - darker version with amber/red */}
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 via-gray-900/90 to-red-500/30"></div>
+          {/* Gradient overlay */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(to right, ${hero?.overlay?.from || 'rgba(16,185,129,0.2)'}, ${hero?.overlay?.to || 'rgba(17,24,39,0.9)'})`
+            }}
+          ></div>
         </div>
 
         {/* Animated orbs */}
@@ -589,50 +597,66 @@ const ServicesPage = () => {
         {/* Content */}
         <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
           <div className="max-w-4xl mx-auto text-center">
+            {/* Badge */}
+            {hero?.badge?.text && (
+              <div
+                className="inline-flex items-center gap-2 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-8 animate-fade-up"
+                style={{
+                  background: hero.badge.backgroundColor || 'linear-gradient(to right, rgba(16,185,129,0.2), rgba(245,158,11,0.2))',
+                  color: hero.badge.textColor || 'white'
+                }}
+              >
+                <span className="text-sm font-medium tracking-wider">{hero.badge.text}</span>
+              </div>
+            )}
 
-
-            {/* Main Heading with animations */}
+            {/* Main Heading */}
             <h1 className="font-montserrat font-extrabold text-5xl sm:text-6xl lg:text-7xl text-white mb-6">
               <span className="block animate-title-slide-up">
-                PREMIUM
+                {hero?.title?.prefix || 'PREMIUM'}
               </span>
               <span className="block relative animate-title-slide-up animation-delay-200">
                 <span className="relative inline-block">
-                  <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-amber-300 to-red-400 bg-[length:200%_200%] animate-gradient-x">
-                    CHRISTMAS LIGHTING
+                  <span
+                    className="relative z-10 text-transparent bg-clip-text bg-[length:200%_200%] animate-gradient-x"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, ${hero?.title?.gradientFrom || '#10b981'}, ${hero?.title?.gradientTo || '#f59e0b'})`
+                    }}
+                  >
+                    {hero?.title?.text || 'CHRISTMAS LIGHTING'}
                   </span>
                   <span className="absolute inset-0 bg-gradient-to-r from-emerald-400/30 to-amber-400/30 blur-3xl -z-10 scale-150"></span>
                 </span>
               </span>
             </h1>
 
-            {/* Description with animation */}
+            {/* Description */}
             <p className="text-xl sm:text-2xl text-white/80 mb-10 leading-relaxed max-w-3xl mx-auto animate-fade-up animation-delay-400">
-              {services?.subtitle || "Transform your property with professional holiday lighting installations"}
+              {hero?.subtitle || "Transform your property with professional holiday lighting installations"}
             </p>
 
-            {/* CTA Buttons with animations */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up animation-delay-600">
-              <button
-                onClick={handleCallClick}
-                className="relative overflow-hidden group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-yellow-500 to-red-500 text-white font-semibold rounded-lg hover:from-yellow-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl text-lg cursor-pointer"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  <HiOutlineSparkles className="w-5 h-5" />
-                  <span>Get My Free Quote</span>
-                  <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
-              </button>
-
-            </div>
+            {/* CTA Button */}
+            {hero?.cta && (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up animation-delay-600">
+                <button
+                  onClick={hero.cta.link ? () => window.location.href = hero.cta.link : handleCallClick}
+                  className="relative overflow-hidden group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-yellow-500 to-red-500 text-white font-semibold rounded-lg hover:from-yellow-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl text-lg cursor-pointer"
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <HiOutlineSparkles className="w-5 h-5" />
+                    <span>{hero.cta.text || "Get My Free Quote"}</span>
+                    <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Services Sections - Alternating Left/Right Layout with Fixed Height Cards */}
-      <section id="services" className="py-16 sm:py-20 md:py-24 bg-white relative overflow-hidden">
-        {/* Decorative background elements */}
+      {/* Services Sections - Using data from homepage services */}
+      <section id="services" className="pt-4 sm:pt-8 md:pt-12 bg-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0" style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, rgba(16,185,129,0.1) 1px, transparent 0)`,
@@ -642,31 +666,25 @@ const ServicesPage = () => {
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-7xl mx-auto">
-            {/* Section Header */}
+            {/* Section Header - DYNAMIC */}
             <div className="text-center mb-16 animate-fade-up">
-
+              {servicesHeader?.badge && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-amber-500/10 rounded-full mb-4">
+                  <span className="text-sm font-medium text-emerald-700">{servicesHeader.badge}</span>
+                </div>
+              )}
               <h2 className="font-montserrat font-extrabold text-3xl sm:text-4xl md:text-5xl text-gray-900 mt-4 mb-4">
                 <span className="bg-gradient-to-r from-red-600 via-amber-500 to-emerald-600 bg-clip-text text-transparent">
-                  Our Lighting Collection
+                  {servicesHeader?.title || 'Our Lighting Collection'}
                 </span>
               </h2>
               <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-                {services?.subtitle || "Professional holiday lighting solutions for every property"}
+                {servicesHeader?.subtitle || "Professional holiday lighting solutions for every property"}
               </p>
             </div>
 
-            {/* Alternating Service Cards with Fixed Height */}
-            {services?.items?.map((service, index) => {
-              // Determine the correct link based on service title
-              const serviceLink = service.title.toLowerCase().includes('residential')
-                ? '/services/residential-lighting'
-                : service.title.toLowerCase().includes('commercial')
-                  ? '/services/commercial-lighting'
-                  : service.title.toLowerCase().includes('permanent')
-                    ? '/services/permanent-lighting'
-                    : `/services/${service.title.toLowerCase().replace(/\s+/g, '-')}`;
-
-              // Use placeholder if image fails to load
+            {/* Alternating Service Cards */}
+            {services?.map((service, index) => {
               const imageSrc = imageErrors[index] ? placeholderImage : (service.image || placeholderImage);
 
               return (
@@ -675,14 +693,13 @@ const ServicesPage = () => {
                   className={`grid lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-stretch py-16 ${index !== 0 ? 'border-t border-gray-100' : ''
                     }`}
                 >
-                  {/* Content - alternating order */}
+                  {/* Content */}
                   <div
                     className={`relative order-2 ${index % 2 === 0 ? 'lg:order-1' : 'lg:order-2'
                       } animate-fade-up h-full`}
                     style={{ animationDelay: `${400 + index * 150}ms` }}
                   >
                     <div className="relative z-10 bg-white rounded-3xl p-8 h-full flex flex-col">
-                      {/* Section badge */}
                       <div className="flex justify-center lg:justify-start mb-4">
                         <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500/10 to-amber-500/10 backdrop-blur-sm border border-emerald-200/30 rounded-full px-4 py-1.5">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: service.color || '#10b981' }}></div>
@@ -696,12 +713,10 @@ const ServicesPage = () => {
                         </span>
                       </h2>
 
-                      {/* Description */}
                       <p className="text-gray-600 text-base sm:text-lg mb-6 leading-relaxed flex-grow">
                         {service.description}
                       </p>
 
-                      {/* Features List */}
                       <div className="space-y-3 mb-8">
                         {service.features?.slice(0, 4).map((feature, idx) => (
                           <div key={idx} className="flex items-start gap-3">
@@ -711,34 +726,31 @@ const ServicesPage = () => {
                         ))}
                       </div>
 
-                      {/* CTA Button */}
                       <div className="flex justify-center lg:justify-start mt-auto">
                         <Link
-                          href={serviceLink}
+                          href={service.ctaLink || `/services/${service.title.toLowerCase().replace(/\s+/g, '-')}`}
                           className="group relative overflow-hidden inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-amber-400 to-red-500 text-white font-semibold rounded-full hover:shadow-2xl hover:scale-105 transition-all duration-300"
                         >
                           <span className="relative z-10 flex items-center gap-2">
                             <HiOutlineSparkles className="w-5 h-5" />
-                            <span>Learn More</span>
+                            <span>{service.ctaText || "Learn More"}</span>
                             <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                           </span>
                           <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-amber-400 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
                         </Link>
                       </div>
 
-                      {/* Decorative elements */}
                       <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-br from-emerald-100 to-amber-100 rounded-full blur-3xl opacity-50 -z-10"></div>
                     </div>
                   </div>
 
-                  {/* Image - alternating order with fixed height */}
+                  {/* Image */}
                   <div
                     className={`relative order-1 ${index % 2 === 0 ? 'lg:order-2' : 'lg:order-1'
                       } animate-fade-up h-full`}
                     style={{ animationDelay: `${500 + index * 150}ms` }}
                   >
                     <div className="relative h-full">
-                      {/* Fixed height container for images */}
                       <div className="relative h-[400px] lg:h-[500px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl">
                         <Image
                           src={imageSrc}
@@ -749,17 +761,13 @@ const ServicesPage = () => {
                           priority={index === 0}
                           onError={() => handleImageError(index)}
                         />
-                        {/* Gradient overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
                       </div>
 
-                      {/* Color accent */}
                       <div
                         className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full blur-2xl opacity-30"
                         style={{ backgroundColor: service.color || '#10b981' }}
                       ></div>
-
-                      {/* Decorative gradient */}
                       <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-amber-500/10 rounded-full blur-3xl"></div>
                     </div>
                   </div>
@@ -770,11 +778,10 @@ const ServicesPage = () => {
         </div>
       </section>
 
-      <section className=" bg-white p-8">
+
+      <section className="bg-white p-8">
         <CallToAction />
       </section>
-
-
 
       {/* Global Styles */}
       <style jsx global>{`
@@ -785,25 +792,13 @@ const ServicesPage = () => {
         }
 
         @keyframes titleSlideUp {
-          from {
-            opacity: 0;
-            transform: translateY(50px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(50px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes gradientX {
@@ -811,80 +806,21 @@ const ServicesPage = () => {
           50% { background-position: 100% 50%; }
         }
 
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-blob {
-          animation: blob 10s infinite;
-        }
-
-        .animate-title-slide-up {
-          animation: titleSlideUp 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
-          opacity: 0;
-        }
-
-        .animate-fade-up {
-          animation: fadeUp 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
-          opacity: 0;
-        }
-
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradientX 3s ease infinite;
-        }
-
-        .animate-fadeInUp {
-          animation: fadeInUp 0.6s ease-out forwards;
-        }
-
-        .animation-delay-200 {
-          animation-delay: 200ms;
-        }
-
-        .animation-delay-400 {
-          animation-delay: 400ms;
-        }
-
-        .animation-delay-600 {
-          animation-delay: 600ms;
-        }
-
-        .animation-delay-800 {
-          animation-delay: 800ms;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2000ms;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4000ms;
-        }
-
-        .animation-delay-900 {
-          animation-delay: 900ms;
-        }
+        .animate-blob { animation: blob 10s infinite; }
+        .animate-title-slide-up { animation: titleSlideUp 0.8s forwards; opacity: 0; }
+        .animate-fade-up { animation: fadeUp 0.6s forwards; opacity: 0; }
+        .animate-gradient-x { background-size: 200% 200%; animation: gradientX 3s ease infinite; }
+        .animation-delay-200 { animation-delay: 200ms; }
+        .animation-delay-400 { animation-delay: 400ms; }
+        .animation-delay-600 { animation-delay: 600ms; }
+        .animation-delay-800 { animation-delay: 800ms; }
+        .animation-delay-2000 { animation-delay: 2000ms; }
+        .animation-delay-4000 { animation-delay: 4000ms; }
 
         @media (max-width: 640px) {
-          h1, h2, h3 {
-            line-height: 1.2 !important;
-          }
-          
-          .text-xl {
-            font-size: 1.125rem !important;
-          }
-          
-          .h-\[400px\] {
-            height: 300px !important;
-          }
+          h1, h2, h3 { line-height: 1.2 !important; }
+          .text-xl { font-size: 1.125rem !important; }
+          .h-\\[400px\\] { height: 300px !important; }
         }
       `}</style>
     </main>

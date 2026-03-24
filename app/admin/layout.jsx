@@ -3,74 +3,28 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import {
-  FiHome,
-  FiInfo,
-  FiGrid,
-  FiSettings,
-  FiLogOut,
-  FiMenu,
-  FiX,
-  FiChevronDown,
-  FiChevronRight,
-  FiStar,
-  FiMap,
-  FiHelpCircle,
-  FiFileText,
-  FiImage,
-  FiUsers,
-  FiMessageSquare,
-  FiBriefcase,
-  FiClock,
-  FiNavigation,
-  FiFooter
-} from 'react-icons/fi';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [openDropdowns, setOpenDropdowns] = useState({
-    home: true,
-    about: false,
+  const [openMenus, setOpenMenus] = useState({
+    homepage: true,
+    pages: false,
     shared: false,
-    settings: false
+    siteSettings: false
   });
 
-  // Close sidebar on route change (mobile)
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
-
-  // Handle escape key to close sidebar
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && sidebarOpen) {
-        setSidebarOpen(false);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [sidebarOpen]);
-
-  // Prevent body scroll when sidebar is open on mobile
-  useEffect(() => {
-    if (sidebarOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [sidebarOpen]);
 
   if (pathname === '/admin/login') {
     return children;
   }
 
-  const toggleDropdown = (menu) => {
-    setOpenDropdowns(prev => ({
+  const toggleMenu = (menu) => {
+    setOpenMenus(prev => ({
       ...prev,
       [menu]: !prev[menu]
     }));
@@ -81,210 +35,161 @@ export default function AdminLayout({ children }) {
   };
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('adminAuth');
-      router.push('/admin/login');
-    }
+    localStorage.removeItem('adminAuth');
+    router.push('/admin/login');
   };
 
-  const NavItem = ({ href, icon: Icon, children, active }) => (
-    <Link
-      href={href}
-      className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${active
-          ? 'bg-indigo-50 text-indigo-700'
-          : 'text-gray-700 hover:bg-gray-100'
-        }`}
-    >
-      {Icon && (
-        <Icon
-          className={`w-5 h-5 mr-3 transition-colors ${active ? 'text-indigo-700' : 'text-gray-500 group-hover:text-gray-700'
-            }`}
-        />
-      )}
-      <span>{children}</span>
-      {active && (
-        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
-      )}
-    </Link>
-  );
-
-  const DropdownSection = ({ title, icon: Icon, isOpen, onToggle, children }) => (
-    <div className="mb-1">
-      <button
-        onClick={onToggle}
-        className={`w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${isOpen ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-100'
-          }`}
-      >
-        <div className="flex items-center">
-          <Icon className="w-5 h-5 mr-3 text-gray-500" />
-          <span>{title}</span>
-        </div>
-        {isOpen ? (
-          <FiChevronDown className="w-4 h-4 text-gray-500 transition-transform duration-200" />
-        ) : (
-          <FiChevronRight className="w-4 h-4 text-gray-500 transition-transform duration-200" />
-        )}
-      </button>
-      <div
-        className={`mt-1 ml-4 space-y-1 overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+  const MenuItem = ({ href, children }) => {
+    const active = isActive(href);
+    return (
+      <Link
+        href={href}
+        className={`block px-4 py-2 text-sm rounded-md transition ${active
+          ? 'bg-blue-50 text-blue-700 font-medium'
+          : 'text-gray-700 hover:bg-gray-50'
           }`}
       >
         {children}
-      </div>
+      </Link>
+    );
+  };
+
+  const MenuGroup = ({ title, icon, children, isOpen, onToggle }) => (
+    <div className="mb-1">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-md transition"
+      >
+        <div className="flex items-center gap-2">
+          <span>{icon}</span>
+          <span>{title}</span>
+        </div>
+        <span className="text-gray-400">{isOpen ? '−' : '+'}</span>
+      </button>
+      {isOpen && (
+        <div className="ml-6 mt-1 space-y-1">
+          {children}
+        </div>
+      )}
     </div>
   );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-20 px-4 py-3">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          aria-label="Toggle menu"
+          className="p-2 rounded-md hover:bg-gray-100"
         >
-          {sidebarOpen ? <FiX className="w-5 h-5" /> : <FiMenu className="w-5 h-5" />}
+          <span className="text-xl">☰</span>
         </button>
-        <span className="ml-3 font-semibold text-gray-800">Admin Dashboard</span>
       </div>
 
-      {/* Overlay for mobile */}
+      {/* Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`
-          fixed inset-y-0 left-0 z-30 w-72 bg-white shadow-xl transform transition-all duration-300 ease-in-out
-          lg:translate-x-0 lg:shadow-none
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
+        className={`fixed top-0 left-0 bottom-0 w-72 bg-white border-r z-30 transform transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="flex flex-col h-full">
-          {/* Logo area */}
-          <div className="flex items-center h-20 px-6 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-xl">C</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">CMS Admin</h1>
-                <p className="text-xs text-gray-500">Content Management</p>
-              </div>
-            </div>
+          {/* Logo */}
+          <div className="h-16 flex items-center px-6 border-b">
+            <h1 className="text-lg font-semibold text-gray-800">CMS Admin</h1>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto py-6 px-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-            {/* Home Dropdown */}
-            <DropdownSection
-              title="Home"
-              icon={FiHome}
-              isOpen={openDropdowns.home}
-              onToggle={() => toggleDropdown('home')}
-            >
-              <NavItem href="/admin/hero" icon={FiImage} active={isActive('/admin/hero')}>
-                Hero Section
-              </NavItem>
-              <NavItem href="/admin/christmas-lighting" icon={FiStar} active={isActive('/admin/christmas-lighting')}>
-                Founder Intro
-              </NavItem>
-              <NavItem href="/admin/how-we-work" icon={FiClock} active={isActive('/admin/how-we-work')}>
-                How We Work
-              </NavItem>
-              <NavItem href="/admin/work-showcase" icon={FiBriefcase} active={isActive('/admin/work-showcase')}>
-                Work Showcase
-              </NavItem>
-              <NavItem href="/admin/testimonials" icon={FiUsers} active={isActive('/admin/testimonials')}>
-                Testimonials
-              </NavItem>
-              <NavItem href="/admin/quote-form" icon={FiFileText} active={isActive('/admin/quote-form')}>
-                Quote Form
-              </NavItem>
-            </DropdownSection>
+          <nav className="flex-1 overflow-y-auto py-4 px-3">
 
-            {/* About Section */}
-            <DropdownSection
-              title="About"
-              icon={FiInfo}
-              isOpen={openDropdowns.about}
-              onToggle={() => toggleDropdown('about')}
+            {/* ==================== HOMEPAGE SECTIONS ==================== */}
+            <MenuGroup
+              title="🏠 Homepage Sections"
+              icon="🏠"
+              isOpen={openMenus.homepage}
+              onToggle={() => toggleMenu('homepage')}
             >
-              <NavItem href="/admin/about" icon={FiFileText} active={isActive('/admin/about')}>
-                About Page
-              </NavItem>
-            </DropdownSection>
+              <MenuItem href="/admin/hero">Hero</MenuItem>
+              <MenuItem href="/admin/christmas-lighting">Founder Intro</MenuItem>
+              <MenuItem href="/admin/how-we-work">How We Work</MenuItem>
+              <MenuItem href="/admin/van-map">Van Map</MenuItem>
+              <MenuItem href="/admin/work-showcase">Work Showcase</MenuItem>
+              <MenuItem href="/admin/testimonials">Testimonials</MenuItem>
+              <MenuItem href="/admin/faq">FAQ</MenuItem>
+              <MenuItem href="/admin/quote-form">Quote Form</MenuItem>
+            </MenuGroup>
 
-            {/* Shared Components */}
-            <DropdownSection
-              title="Shared Components"
-              icon={FiGrid}
-              isOpen={openDropdowns.shared}
-              onToggle={() => toggleDropdown('shared')}
+            {/* ==================== PAGES (COMPLETE PAGE EDITORS) ==================== */}
+            <MenuGroup
+              title="📄 Pages"
+              icon="📄"
+              isOpen={openMenus.pages}
+              onToggle={() => toggleMenu('pages')}
             >
-              <NavItem href="/admin/services" icon={FiBriefcase} active={isActive('/admin/services')}>
-                Services
-              </NavItem>
-              <NavItem href="/admin/van-map" icon={FiMap} active={isActive('/admin/van-map')}>
-                Map
-              </NavItem>
-              <NavItem href="/admin/faq" icon={FiHelpCircle} active={isActive('/admin/faq')}>
-                FAQ
-              </NavItem>
-            </DropdownSection>
+              <MenuItem href="/admin/about">About Page</MenuItem>
+              <MenuItem href="/admin/services-page">Services Page</MenuItem>
+              <MenuItem href="/admin/residential">Residential Lighting Page</MenuItem>
+              <MenuItem href="/admin/commercial">Commercial Lighting Page</MenuItem>
+              <MenuItem href="/admin/permanent">Permanent Lighting Page</MenuItem>
+            </MenuGroup>
 
-            {/* Site Settings */}
-            <DropdownSection
-              title="Site Settings"
-              icon={FiSettings}
-              isOpen={openDropdowns.settings}
-              onToggle={() => toggleDropdown('settings')}
+            {/* ==================== SHARED COMPONENTS ==================== */}
+            <MenuGroup
+              title="✨ Shared Components"
+              icon="✨"
+              isOpen={openMenus.shared}
+              onToggle={() => toggleMenu('shared')}
             >
-              <NavItem href="/admin/navbar" icon={FiNavigation} active={isActive('/admin/navbar')}>
-                Navbar
-              </NavItem>
-              <NavItem href="/admin/footer" icon={FiFooter} active={isActive('/admin/footer')}>
-                Footer
-              </NavItem>
-            </DropdownSection>
+              <div className="ml-6 mt-1 mb-2 text-xs text-gray-500 italic">
+                These appear across multiple pages
+              </div>
+              <MenuItem href="/admin/services">Services Cards</MenuItem>
+            </MenuGroup>
+            <MenuItem href="/admin/gallery">Gallery Page</MenuItem>
+            <MenuItem href="/admin/service-area">Service Area Page</MenuItem>
+            {/* ==================== SITE SETTINGS ==================== */}
+            <MenuGroup
+              title="⚙️ Site Settings"
+              icon="⚙️"
+              isOpen={openMenus.siteSettings}
+              onToggle={() => toggleMenu('siteSettings')}
+            >
+              <MenuItem href="/admin/navbar">Navigation Bar</MenuItem>
+              <MenuItem href="/admin/footer">Footer</MenuItem>
+            </MenuGroup>
+
+            {/* ==================== NOTES ==================== */}
+            <div className="mt-6 px-4 py-3 bg-blue-50 rounded-lg text-xs text-blue-800">
+              <p className="font-semibold mb-1">📌 Quick Guide:</p>
+              <p>• Each page has its own complete editor</p>
+              <p>• Services Cards → Edit what appears on homepage</p>
+              <p>• Each service page has unique content</p>
+              <p>• Upload images → Click the upload button next to each field</p>
+            </div>
           </nav>
 
-          {/* User info and logout */}
-          <div className="border-t border-gray-200 p-4">
-            <div className="flex items-center mb-4 px-3 py-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold">
-                A
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-800">Admin User</p>
-                <p className="text-xs text-gray-500">admin@example.com</p>
-              </div>
-            </div>
-
+          {/* Footer */}
+          <div className="p-4 border-t">
             <button
               onClick={handleLogout}
-              className="flex items-center w-full px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition"
             >
-              <FiLogOut className="w-5 h-5 mr-3 text-red-500 group-hover:text-red-600" />
-              <span>Logout</span>
+              Logout
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className={`
-        transition-all duration-300
-        lg:ml-72
-        ${sidebarOpen ? 'ml-72' : 'ml-0'}
-      `}>
-        <div className="min-h-screen pt-16 lg:pt-0">
-          <div className="p-6 lg:p-8">
-            {/* Breadcrumb can go here if needed */}
+      {/* Main Content */}
+      <main className="lg:pl-72">
+        <div className="pt-14 lg:pt-0">
+          <div className="p-6">
             {children}
           </div>
         </div>

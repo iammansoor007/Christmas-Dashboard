@@ -18,7 +18,15 @@
     "seed-quote-form": "node scripts/seed-quote-form.js",
     "seed-footer": "node scripts/seed-footer.js",
     "seed-navbar": "node scripts/seed-navbar.js",
-    "seed-about": "node scripts/seed-about.js"
+    "seed-about": "node scripts/seed-about.js",
+    "seed-services-page": "node scripts/seed-services-page.js",
+    "seed-service-details": "node scripts/seed-service-details.js",
+    "seed-residential": "node scripts/seed-residential-page.js",
+    "seed-commercial": "node scripts/seed-commercial-page.js",
+    "seed-permanent": "node scripts/seed-permanent-page.js",
+    "seed-gallery": "node scripts/seed-gallery.js",
+    "seed-service-area": "node scripts/seed-service-area.js",
+    "seed-all-pages": "npm run seed-residential && npm run seed-commercial && npm run seed-permanent"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

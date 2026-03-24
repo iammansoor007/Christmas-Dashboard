@@ -8,10 +8,10 @@ export const metadata = {
   openGraph: {
     title: 'Christmas Lighting',
     description: 'Professional lighting services',
-    url: 'https://christmaswebsite-kappa.vercel.app', // your live site URL
+    url: 'https://christmaswebsite-kappa.vercel.app',
     images: [
       {
-        url: 'https://christmaswebsite-kappa.vercel.app/images/mainlogo.jpg', // direct URL of logo
+        url: 'https://christmaswebsite-kappa.vercel.app/images/mainlogo.jpg',
         width: 1200,
         height: 630,
         alt: 'Christmas Lighting',
@@ -25,7 +25,6 @@ export const metadata = {
     description: 'Professional lighting services',
     images: ['https://christmaswebsite-kappa.vercel.app/images/mainlogo.jpg'],
   },
-  // Optional: LinkedIn will use openGraph automatically
 };
 
 const montserrat = Montserrat({
