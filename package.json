@@ -26,12 +26,16 @@
     "seed-permanent": "node scripts/seed-permanent-page.js",
     "seed-gallery": "node scripts/seed-gallery.js",
     "seed-service-area": "node scripts/seed-service-area.js",
+    "seed-contact": "node scripts/seed-contact-page.js",
+    "seed-privacy": "node scripts/seed-privacy.js",
+    "seed-terms": "node scripts/seed-terms.js",
     "seed-all-pages": "npm run seed-residential && npm run seed-commercial && npm run seed-permanent"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "bcryptjs": "^3.0.3",
     "cookie": "^1.1.1",
+    "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",
     "framer-motion": "^12.31.0",
     "gsap": "^3.14.2",

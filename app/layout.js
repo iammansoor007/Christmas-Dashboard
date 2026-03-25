@@ -1,6 +1,8 @@
 import { Montserrat } from 'next/font/google';
 import './globals.css';
 import ClientLayout from './ClientLayout';
+import SchemaMarkup from './components/SchemaMarkup';
+import Analytics from './components/Analytics';
 
 export const metadata = {
   title: 'Christmas Lighting',
@@ -37,6 +39,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${montserrat.variable} font-sans`}>
+        <SchemaMarkup />
+        <Analytics />
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

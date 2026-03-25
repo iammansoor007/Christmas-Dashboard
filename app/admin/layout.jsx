@@ -153,6 +153,10 @@ export default function AdminLayout({ children }) {
             </MenuGroup>
             <MenuItem href="/admin/gallery">Gallery Page</MenuItem>
             <MenuItem href="/admin/service-area">Service Area Page</MenuItem>
+            <MenuItem href="/admin/contact">Contact Page</MenuItem>
+            <MenuItem href="/admin/privacy">Privacy Policy Page</MenuItem>
+            <MenuItem href="/admin/terms">Terms & Conditions Page</MenuItem>
+            <MenuItem href="/api-docs">API Documentation</MenuItem>
             {/* ==================== SITE SETTINGS ==================== */}
             <MenuGroup
               title="⚙️ Site Settings"
