@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/mongodb';
-import Service from '../../../lib/models/Service';
+import Page from '../../../lib/models/Page';
 
 function generateSlug(title) {
     return title
@@ -12,10 +12,10 @@ function generateSlug(title) {
 export async function GET() {
     try {
         await connectDB();
-        const services = await Service.find({ status: 'published' }).sort({ order: 1 });
-        return NextResponse.json(services);
+        const pages = await Page.find().sort({ createdAt: -1 });
+        return NextResponse.json(pages);
     } catch (error) {
-        console.error('GET services error:', error);
+        console.error('GET pages error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -30,24 +30,22 @@ export async function POST(request) {
         let counter = 1;
         let originalSlug = slug;
 
-        // Ensure unique slug
-        while (await Service.findOne({ slug })) {
+        while (await Page.findOne({ slug })) {
             slug = `${originalSlug}-${counter}`;
             counter++;
         }
 
         data.slug = slug;
 
-        // Generate number if not provided
-        if (!data.number) {
-            const count = await Service.countDocuments();
-            data.number = String(count + 1).padStart(2, '0');
+        // If this is homepage, unset other homepages
+        if (data.isHomepage) {
+            await Page.updateMany({ isHomepage: true }, { $set: { isHomepage: false } });
         }
 
-        const service = await Service.create(data);
-        return NextResponse.json(service, { status: 201 });
+        const page = await Page.create(data);
+        return NextResponse.json(page, { status: 201 });
     } catch (error) {
-        console.error('POST service error:', error);
+        console.error('POST page error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -58,10 +56,10 @@ export async function PUT(request) {
         const data = await request.json();
         const { _id, ...updateData } = data;
 
-        const service = await Service.findByIdAndUpdate(_id, updateData, { new: true });
-        return NextResponse.json(service);
+        const page = await Page.findByIdAndUpdate(_id, updateData, { new: true });
+        return NextResponse.json(page);
     } catch (error) {
-        console.error('PUT service error:', error);
+        console.error('PUT page error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -72,10 +70,15 @@ export async function DELETE(request) {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
-        await Service.findByIdAndDelete(id);
+        const page = await Page.findById(id);
+        if (page?.isHomepage) {
+            return NextResponse.json({ error: 'Cannot delete homepage' }, { status: 400 });
+        }
+
+        await Page.findByIdAndDelete(id);
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error('DELETE service error:', error);
+        console.error('DELETE page error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

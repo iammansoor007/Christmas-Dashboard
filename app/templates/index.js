@@ -1,0 +1,9 @@
+export { default as HomeTemplate } from './HomeTemplate';
+export { default as AboutTemplate } from './AboutTemplate';
+export { default as ContactTemplate } from './ContactTemplate';
+export { default as ServicesTemplate } from './ServicesTemplate';
+export { default as ServiceDetailTemplate } from './ServiceDetailTemplate';
+export { default as ServiceAreaTemplate } from './ServiceAreaTemplate';
+export { default as GalleryTemplate } from './GalleryTemplate';
+export { default as PrivacyTemplate } from './PrivacyTemplate';
+export { default as TermsTemplate } from './TermsTemplate';

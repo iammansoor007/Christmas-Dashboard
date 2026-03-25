@@ -15,7 +15,8 @@ const AwardWinningServicesSection = () => {
   const containerRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(null);
   const [isClient, setIsClient] = useState(false);
-  const [servicesData, setServicesData] = useState(null);
+  const [services, setServices] = useState([]);
+  const [sectionData, setSectionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -30,11 +31,39 @@ const AwardWinningServicesSection = () => {
       .then(res => res.json())
       .then(data => {
         console.log('Data loaded:', data);
-        setServicesData(data);
+        // Check if data is array or object
+        if (Array.isArray(data)) {
+          // New API returns array of services
+          setServices(data.filter(s => s.status === 'published' && s.showOnHomepage === true));
+          setSectionData({
+            badge: "Premium Services",
+            title: { prefix: "Premium", text: "Christmas Lighting" },
+            subtitle: "Custom holiday lighting designed to make your home stand out.",
+            buttons: { primary: "View All Services" }
+          });
+        } else if (data && data.items) {
+          // Old API structure
+          setServices(data.items.filter(s => s.status === 'published' && s.showOnHomepage !== false));
+          setSectionData({
+            badge: data.badge,
+            title: data.title,
+            subtitle: data.subtitle,
+            buttons: data.buttons
+          });
+        } else {
+          setServices([]);
+          setSectionData({
+            badge: "Premium Services",
+            title: { prefix: "Premium", text: "Christmas Lighting" },
+            subtitle: "Custom holiday lighting designed to make your home stand out.",
+            buttons: { primary: "View All Services" }
+          });
+        }
         setLoading(false);
       })
       .catch(err => {
         console.error('Error:', err);
+        setError(err.message);
         setLoading(false);
       });
   }, []);
@@ -77,19 +106,19 @@ const AwardWinningServicesSection = () => {
     );
   }
 
-  if (error || !servicesData) {
+  if (error || !services || services.length === 0) {
     return (
-      <section className="relative w-full h-screen flex items-center justify-center bg-white">
+      <section className="relative w-full py-20 flex items-center justify-center bg-white">
         <div className="text-center">
           <GiSparkles className="text-6xl text-amber-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Failed to load services</h2>
-          <p className="text-gray-600">{error || 'Please check database connection'}</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">No services available</h2>
+          <p className="text-gray-600">Please add services from the admin panel.</p>
         </div>
       </section>
     );
   }
 
-  const { badge, title, subtitle, items: services } = servicesData;
+  const { badge, title, subtitle, buttons } = sectionData;
 
   return (
     <section
@@ -108,7 +137,7 @@ const AwardWinningServicesSection = () => {
       <div className="absolute bottom-20 right-5 xs:right-10 w-48 xs:w-64 sm:w-80 lg:w-[500px] h-48 xs:h-64 sm:h-80 lg:h-[500px] bg-red-200/30 rounded-full blur-2xl xs:blur-3xl" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] xs:w-[350px] sm:w-[400px] lg:w-[500px] h-[280px] xs:h-[350px] sm:h-[400px] lg:h-[500px] bg-gradient-to-r from-amber-100/30 to-red-100/30 rounded-full blur-2xl xs:blur-3xl" />
 
-      {/* Floating Christmas lights - SIMPLIFIED without motion for now */}
+      {/* Floating Christmas lights */}
       {isClient && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {floatingLights.map((light, i) => (
@@ -127,7 +156,7 @@ const AwardWinningServicesSection = () => {
       )}
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Header - WITHOUT animations for now */}
+        {/* Header */}
         <div className="text-center mb-8 xs:mb-10 sm:mb-14 lg:mb-16 xl:mb-20">
           {badge && (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 rounded-full mb-4">
@@ -147,15 +176,15 @@ const AwardWinningServicesSection = () => {
           </p>
         </div>
 
-        {/* Services Grid - WITH original styling but without hover animations for now */}
+        {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xs:gap-5 sm:gap-6 lg:gap-8 xl:gap-10">
           {services.map((service, index) => {
             const IconComponent = getIcon(service.icon);
 
             return (
               <Link
-                href={service.ctaLink || "#"}
-                key={index}
+                href={service.ctaLink || `/services/${service.slug}`}
+                key={service._id || index}
                 className="block group"
               >
                 <div className="relative bg-white rounded-xl xs:rounded-2xl sm:rounded-3xl shadow-lg xs:shadow-xl overflow-hidden border border-gray-100 h-full min-h-[380px] xs:min-h-[400px] sm:min-h-[420px] lg:min-h-[440px] xl:min-h-[460px] flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
@@ -168,11 +197,11 @@ const AwardWinningServicesSection = () => {
                   {/* Image + Content row */}
                   <div className="flex flex-col sm:flex-row flex-1">
                     {/* Image section */}
-                    {service.image && (
+                    {service.mainImage && (
                       <div className="sm:w-2/5 w-full">
                         <div className="relative w-full h-48 xs:h-52 sm:h-full min-h-[180px] sm:min-h-full overflow-hidden">
                           <img
-                            src={service.image}
+                            src={service.mainImage}
                             alt={service.title}
                             className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                             loading="lazy"
@@ -213,7 +242,7 @@ const AwardWinningServicesSection = () => {
 
                       {/* Description */}
                       <p className="text-gray-600 text-xs xs:text-sm sm:text-base mb-2 xs:mb-3 sm:mb-4 leading-relaxed">
-                        {service.description}
+                        {service.shortDescription}
                       </p>
 
                       {/* Features */}
@@ -260,7 +289,7 @@ const AwardWinningServicesSection = () => {
             <div className="group relative px-4 xs:px-6 sm:px-8 lg:px-10 py-2 xs:py-2.5 sm:py-3 lg:py-4 bg-gradient-to-r from-amber-500 to-red-500 rounded-lg xs:rounded-xl text-white font-bold text-xs xs:text-sm sm:text-base lg:text-lg shadow-md xs:shadow-lg lg:shadow-xl cursor-pointer inline-flex items-center hover:scale-105 transition-transform">
               <span className="relative z-10 flex items-center gap-1 xs:gap-1.5 sm:gap-2">
                 <FaLightbulb className="text-yellow-200 text-xs xs:text-sm sm:text-base" />
-                <span>{servicesData.buttons?.primary || "View All Services"}</span>
+                <span>{buttons?.primary || "View All Services"}</span>
                 <FaStar className="text-yellow-200 text-xs xs:text-sm sm:text-base" />
               </span>
             </div>

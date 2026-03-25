@@ -29,6 +29,7 @@
     "seed-contact": "node scripts/seed-contact-page.js",
     "seed-privacy": "node scripts/seed-privacy.js",
     "seed-terms": "node scripts/seed-terms.js",
+    "migrate-pages": "node scripts/migrate-pages.js",
     "seed-all-pages": "npm run seed-residential && npm run seed-commercial && npm run seed-permanent"
   },
   "dependencies": {
