@@ -31,10 +31,10 @@ const getIcon = (iconName) => {
   return Icons[iconName] || null;
 };
 
-const ContactPage = () => {
+const ContactPage = ({ data: propData }) => {
   const [mounted, setMounted] = useState(false);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,6 +56,15 @@ const ContactPage = () => {
 
   // Fetch data
   useEffect(() => {
+    setMounted(true);
+    window.scrollTo(0, 0);
+
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const response = await fetch("/api/contact-page");
@@ -68,9 +77,7 @@ const ContactPage = () => {
       }
     };
     fetchData();
-    setMounted(true);
-    window.scrollTo(0, 0);
-  }, []);
+  }, [propData]);
 
   // Smooth parallax effect
   useEffect(() => {

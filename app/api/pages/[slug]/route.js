@@ -6,18 +6,23 @@ export async function GET(request, { params }) {
     try {
         await connectDB();
         const { slug } = await params;
+        const url = new URL(request.url);
+        const preview = url.searchParams.get('preview') === 'true';
 
-        let page = await Page.findOne({ slug, status: 'published' });
+        let page = null;
 
-        if (!page) {
-            const url = new URL(request.url);
-            const preview = url.searchParams.get('preview');
-            if (preview === 'true') {
-                page = await Page.findOne({ slug });
-            }
+        // Check if slug is actually an ID
+        const mongoose = require('mongoose');
+        const isId = mongoose.Types.ObjectId.isValid(slug);
+
+        if (isId) {
+            page = await Page.findById(slug);
+        } else {
+            page = await Page.findOne({ slug });
         }
 
-        if (!page) {
+        // If not found or not published (and not previewing)
+        if (!page || (page.status !== 'published' && !preview)) {
             return NextResponse.json({ error: 'Page not found' }, { status: 404 });
         }
 

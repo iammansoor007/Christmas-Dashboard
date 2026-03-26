@@ -7,9 +7,9 @@ import { HiOutlineSparkles } from 'react-icons/hi';
 import Image from 'next/image';
 import Link from 'next/link';
 
-const Hero = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+const Hero = ({ data: propData }) => {
+  const [data, setData] = useState(propData ? { hero: propData } : null);
+  const [loading, setLoading] = useState(!propData);
   const [error, setError] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [treesReady, setTreesReady] = useState(false);
@@ -18,6 +18,13 @@ const Hero = () => {
   const rightTreeRef = useRef(null);
 
   useEffect(() => {
+    // If data is provided via props, don't fetch from API
+    if (propData) {
+      setData({ hero: propData });
+      setLoading(false);
+      return;
+    }
+
     const loadHeroData = async () => {
       try {
         console.log('Fetching hero data...');

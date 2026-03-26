@@ -67,26 +67,6 @@ export default function PagesManager() {
         setShowDeleteConfirm(null);
     };
 
-    const handleSetHomepage = async (page) => {
-        try {
-            const updatedPage = { ...page, isHomepage: true, status: 'published' };
-            const response = await fetch('/api/pages', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedPage),
-            });
-
-            if (response.ok) {
-                setMessage({ type: 'success', text: 'Homepage updated!' });
-                fetchPages();
-            } else {
-                const data = await response.json();
-                setMessage({ type: 'error', text: data.error || 'Failed to set homepage' });
-            }
-        } catch (error) {
-            setMessage({ type: 'error', text: 'Error updating homepage' });
-        }
-    };
 
     const handleStatusToggle = async (page) => {
         try {
@@ -269,7 +249,6 @@ export default function PagesManager() {
                                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Title / URL</th>
                                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Template</th>
                                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Navigation</th>
                                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -298,12 +277,6 @@ export default function PagesManager() {
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="font-medium text-gray-900">{page.title}</span>
-                                                {page.isHomepage && (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">
-                                                        <FaHome size={10} />
-                                                        Home
-                                                    </span>
-                                                )}
                                             </div>
                                             <div className="text-sm text-gray-500 mt-1">
                                                 /{page.slug}
@@ -319,36 +292,17 @@ export default function PagesManager() {
                                         <button
                                             onClick={() => handleStatusToggle(page)}
                                             className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${page.status === 'published'
-                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                                 }`}
                                         >
                                             {page.status === 'published' ? <FaEye size={10} /> : <FaEyeSlash size={10} />}
                                             {page.status === 'published' ? 'Published' : 'Draft'}
                                         </button>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <button
-                                            onClick={() => handleNavToggle(page)}
-                                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${page.showInNav
-                                                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                                }`}
-                                        >
-                                            {page.showInNav ? 'In Menu' : 'Hidden'}
-                                        </button>
-                                    </td>
+
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
-                                            {!page.isHomepage && (
-                                                <button
-                                                    onClick={() => handleSetHomepage(page)}
-                                                    className="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-colors"
-                                                    title="Set as Homepage"
-                                                >
-                                                    <FaHome size={16} />
-                                                </button>
-                                            )}
                                             <Link
                                                 href={`/admin/pages/edit/${page._id}`}
                                                 className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -364,15 +318,13 @@ export default function PagesManager() {
                                             >
                                                 <FaEye size={16} />
                                             </Link>
-                                            {!page.isHomepage && (
-                                                <button
-                                                    onClick={() => setShowDeleteConfirm(page)}
-                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <FaTrash size={16} />
-                                                </button>
-                                            )}
+                                            <button
+                                                onClick={() => setShowDeleteConfirm(page)}
+                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                title="Delete"
+                                            >
+                                                <FaTrash size={16} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

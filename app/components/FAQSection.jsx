@@ -2,15 +2,21 @@
 import { useState, useRef, useEffect } from 'react'
 import { FaPlus } from 'react-icons/fa'
 
-const FAQSection = () => {
+const FAQSection = ({ data: propData }) => {
   const [openIndex, setOpenIndex] = useState(0)
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState(propData || null)
+  const [loading, setLoading] = useState(!propData)
   const contentRefs = useRef([])
   const [heights, setHeights] = useState({})
 
   // Load data from API
   useEffect(() => {
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       try {
         const response = await fetch('/api/faq')
@@ -24,7 +30,7 @@ const FAQSection = () => {
     }
 
     loadData()
-  }, [])
+  }, [propData])
 
   // Measure and store heights on mount and window resize
   useEffect(() => {

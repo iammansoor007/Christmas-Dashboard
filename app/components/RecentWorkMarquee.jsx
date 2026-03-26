@@ -2,14 +2,20 @@
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-const RefinedWorkShowcase = () => {
+const RefinedWorkShowcase = ({ data: propData }) => {
   const containerRef = useRef(null);
   const [starPositions, setStarPositions] = useState([]);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
 
   // Load data from API
   useEffect(() => {
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       try {
         const response = await fetch("/api/work-showcase");
@@ -23,7 +29,7 @@ const RefinedWorkShowcase = () => {
     };
 
     loadData();
-  }, []);
+  }, [propData]);
 
   // Generate star positions on client side only
   useEffect(() => {

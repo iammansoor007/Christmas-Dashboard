@@ -4,32 +4,50 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import ServiceDetailTemplate from '../../templates/ServiceDetailTemplate';
 
-export default function ServiceDetailPage() {
+export default function ServiceDetailPage({ service: propService }) {
     const params = useParams();
     const serviceSlug = params?.serviceSlug;
 
-    const [service, setService] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [service, setService] = useState(propService || null);
+    const [loading, setLoading] = useState(!propService);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (propService) {
+            setService(propService);
+            setLoading(false);
+            return;
+        }
+
         if (!serviceSlug) return;
 
-        const fetchService = async () => {
+        const fetchServiceData = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`/api/services/${serviceSlug}`);
+                
+                // Fetch both basic service info and detailed content
+                const [serviceRes, detailRes] = await Promise.all([
+                    fetch(`/api/services/${serviceSlug}`),
+                    fetch(`/api/service-detail/${serviceSlug}`)
+                ]);
 
-                if (response.status === 404) {
+                if (serviceRes.status === 404) {
                     throw new Error('Service not found');
                 }
 
-                if (!response.ok) {
-                    throw new Error('Failed to load service');
+                if (!serviceRes.ok) {
+                    throw new Error('Failed to load service metadata');
                 }
 
-                const data = await response.json();
-                setService(data);
+                const serviceData = await serviceRes.json();
+                let combinedData = { ...serviceData };
+
+                if (detailRes.ok) {
+                    const detailData = await detailRes.json();
+                    combinedData = { ...combinedData, ...detailData };
+                }
+
+                setService(combinedData);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching service:', err);
@@ -39,8 +57,8 @@ export default function ServiceDetailPage() {
             }
         };
 
-        fetchService();
-    }, [serviceSlug]);
+        fetchServiceData();
+    }, [serviceSlug, propService]);
 
     // Update document title
     useEffect(() => {

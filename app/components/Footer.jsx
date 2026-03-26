@@ -81,6 +81,7 @@ const Footer = () => {
     contact,
     socialMedia,
     links,
+    navItems,
     certifications,
     copyrightText,
     designedBy
@@ -163,6 +164,8 @@ const Footer = () => {
           {/* Column 2: Links/Services Column */}
           <div className="lg:col-span-5">
             <div className="grid grid-cols-2 gap-6 sm:gap-8">
+              {/* Navigation links from Navbar Editor */}
+
               {links && Object.entries(links).map(([category, linkItems]) => (
                 <div key={`category-${category}`} className="col-span-1">
                   <h4 className="text-white font-semibold text-base sm:text-lg md:text-xl mb-3 pb-2 border-b border-holiday-gold/20 relative">
@@ -262,15 +265,15 @@ const Footer = () => {
                 © {year || currentYear} {companyName}. {copyrightText || 'All rights reserved.'}
                 {designedBy?.name && (
                   <> Designed by{" "}
-                  <a
-                    href={designedBy.url || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-white/80 hover:text-white transition-colors duration-300 font-medium hover:underline underline-offset-2"
-                  >
-                    {designedBy.name}
-                  </a>
-                  .</>
+                    <a
+                      href={designedBy.url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white/80 hover:text-white transition-colors duration-300 font-medium hover:underline underline-offset-2"
+                    >
+                      {designedBy.name}
+                    </a>
+                    .</>
                 )}
               </p>
             </div>

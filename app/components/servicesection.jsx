@@ -4,12 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { GiSparkles } from "react-icons/gi";
 
-const ChristmasLightingSection = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+const ChristmasLightingSection = ({ data: propData }) => {
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       try {
         const response = await fetch("/api/christmas-lighting");
@@ -28,7 +34,7 @@ const ChristmasLightingSection = () => {
       }
     };
     loadData();
-  }, []);
+  }, [propData]);
 
   const handleCTAClick = (e, link) => {
     if (link?.startsWith('#')) {

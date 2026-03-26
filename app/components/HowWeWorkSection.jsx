@@ -483,16 +483,22 @@ const ConsultationModal = ({ isOpen, onClose }) => {
   );
 };
 
-const HowWeWorkSection = () => {
+const HowWeWorkSection = ({ data: propData }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
   const [error, setError] = useState(null);
 
   // Fetch data from API
   useEffect(() => {
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const response = await fetch('/api/how-we-work');
@@ -507,7 +513,7 @@ const HowWeWorkSection = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [propData]);
 
   // Detect screen size
   useEffect(() => {

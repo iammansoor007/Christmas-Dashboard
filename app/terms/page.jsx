@@ -23,11 +23,17 @@ const getIcon = (iconName) => {
     return Icons[iconName] || FaFileContract;
 };
 
-const TermsAndConditions = () => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+const TermsAndConditions = ({ data: propData }) => {
+    const [data, setData] = useState(propData || null);
+    const [loading, setLoading] = useState(!propData);
 
     useEffect(() => {
+        if (propData) {
+            setData(propData);
+            setLoading(false);
+            return;
+        }
+
         const fetchData = async () => {
             try {
                 const response = await fetch("/api/terms-page");
@@ -41,7 +47,7 @@ const TermsAndConditions = () => {
         };
         fetchData();
         window.scrollTo(0, 0);
-    }, []);
+    }, [propData]);
 
     if (loading) {
         return (

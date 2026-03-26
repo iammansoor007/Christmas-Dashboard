@@ -16,9 +16,9 @@ import {
   FaQuoteRight,
 } from "react-icons/fa";
 
-export default function VanMapSection() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+export default function VanMapSection({ data: propData }) {
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const [screenSize, setScreenSize] = useState("desktop");
@@ -26,6 +26,12 @@ export default function VanMapSection() {
 
   // Fetch data
   useEffect(() => {
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const response = await fetch('/api/van-map');
@@ -38,7 +44,7 @@ export default function VanMapSection() {
       }
     };
     fetchData();
-  }, []);
+  }, [propData]);
 
   useEffect(() => {
     const checkScreenSize = () => {

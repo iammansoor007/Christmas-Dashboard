@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import ServiceDetailPage from '../../app/services/[serviceSlug]/page';
+import ServiceDetailContent from '../components/ServiceDetailContent';
 
 export default function ServiceDetailTemplate({ data, seo }) {
     useEffect(() => {
@@ -10,5 +10,5 @@ export default function ServiceDetailTemplate({ data, seo }) {
         }
     }, [seo]);
 
-    return <ServiceDetailPage service={data} />;
+    return <ServiceDetailContent data={data} />;
 }

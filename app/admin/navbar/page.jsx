@@ -6,11 +6,23 @@ import { FaPlus, FaTrash, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 
 export default function NavbarEditor() {
   const [data, setData] = useState(null);
+  const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    fetch('/api/pages')
+      .then(res => res.json())
+      .then(pagesData => {
+        if (Array.isArray(pagesData)) {
+            setPages(pagesData);
+        }
+      })
+      .catch(err => console.error('Error fetching pages:', err));
+  }, []);
 
   useEffect(() => {
     const isAuth = localStorage.getItem('adminAuth');
@@ -22,12 +34,19 @@ export default function NavbarEditor() {
   useEffect(() => {
     fetch('/api/navbar')
       .then(res => res.json())
-      .then(data => {
-        console.log('Loaded data:', data);
-        if (data.error) {
+      .then(navData => {
+        console.log('Loaded data:', navData);
+        if (navData.error) {
           setMessage({ type: 'error', text: 'No data in database. Please seed data first.' });
         } else {
-          setData(data);
+          // If no homepageId saved in navbar, detect from current homepage in pages
+          if (!navData.homepageId && pages.length > 0) {
+            const currentHomepage = pages.find(p => p.isHomepage);
+            if (currentHomepage) {
+              navData.homepageId = currentHomepage._id;
+            }
+          }
+          setData(navData);
         }
         setLoading(false);
       })
@@ -36,7 +55,38 @@ export default function NavbarEditor() {
         setMessage({ type: 'error', text: 'Failed to load data' });
         setLoading(false);
       });
-  }, []);
+  }, [pages]);
+
+  const handlePageSelect = (index, pageSlug, pageTitle, dropIndex = null) => {
+    const path = `/${pageSlug === 'home' ? '' : pageSlug}`;
+    if (dropIndex !== null) {
+        // Update dropdown item
+        const newItems = [...data.navItems];
+        newItems[index].dropdown[dropIndex] = {
+            ...newItems[index].dropdown[dropIndex],
+            path: path
+        };
+        // ONLY update label if it's default/empty
+        const currentLabel = newItems[index].dropdown[dropIndex].label;
+        if (!currentLabel || currentLabel.includes('New Dropdown') || currentLabel === '') {
+            newItems[index].dropdown[dropIndex].label = pageTitle;
+        }
+        setData({ ...data, navItems: newItems });
+    } else {
+        // Update top-level item
+        const newItems = [...data.navItems];
+        newItems[index] = {
+            ...newItems[index],
+            path: path
+        };
+        // ONLY update label if it's default/empty
+        const currentLabel = newItems[index].label;
+        if (!currentLabel || currentLabel.includes('New Page') || currentLabel === '') {
+            newItems[index].label = pageTitle;
+        }
+        setData({ ...data, navItems: newItems });
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -233,7 +283,32 @@ export default function NavbarEditor() {
         )}
 
         <div className="bg-white rounded-lg shadow p-6 space-y-6">
-          {/* Logo */}
+          {/* Site Homepage */}
+          <div className="space-y-4 border-b pb-6">
+            <div className="flex items-center gap-2 text-amber-600 font-semibold mb-2">
+              <FaPlus size={16} /> {/* Using FaPlus as a placeholder or FaHome if imported */}
+              <h2 className="text-2xl">Site Homepage</h2>
+            </div>
+            <p className="text-sm text-gray-500">Select which page should serve as the main landing page (/) of your website.</p>
+            <div className="max-w-md">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Default Homepage</label>
+              <select
+                className="w-full px-3 py-2 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                value={data.homepageId || ''}
+                onChange={(e) => setData({ ...data, homepageId: e.target.value })}
+              >
+                <option value="">-- Select Homepage --</option>
+                {pages.map(page => (
+                  <option key={page._id} value={page._id}>
+                    {page.title} ({page.slug})
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-amber-600 mt-2 font-medium">
+                Note: Setting a new homepage will automatically update the public site.
+              </p>
+            </div>
+          </div>
           <div className="space-y-4 border-b pb-6">
             <h2 className="text-2xl font-semibold">Logo</h2>
             
@@ -329,25 +404,46 @@ export default function NavbarEditor() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Label</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Link to Page</label>
+                      <select
+                        className="w-full px-3 py-2 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
+                        value={pages.find(p => {
+                            const path = `/${p.slug === 'home' ? '' : p.slug}`;
+                            return item.path === path;
+                        })?.slug || ''}
+                        onChange={(e) => {
+                          const page = pages.find(p => p.slug === e.target.value);
+                          if (page) handlePageSelect(index, page.slug, page.title);
+                        }}
+                      >
+                      <option value="">-- Custom / Manual Path --</option>
+                      {pages.map(page => (
+                        <option key={page._id} value={page.slug}>{page.title} ({page.slug})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Navigation Label</label>
                     <input
                       type="text"
                       value={item.label || ''}
                       onChange={(e) => updateNavItem(index, 'label', e.target.value)}
-                      className="w-full px-3 py-2 border rounded"
+                      className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g. Services"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">Path</label>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Path / URL</label>
                     <input
                       type="text"
                       value={item.path || ''}
                       onChange={(e) => updateNavItem(index, 'path', e.target.value)}
-                      className="w-full px-3 py-2 border rounded"
+                      className="w-full px-3 py-2 border rounded-lg bg-gray-50 font-mono text-xs"
                       placeholder="/about"
                     />
+                    <p className="text-[10px] text-gray-500 mt-1">Leave as is if linked to a page above, or enter custom URL.</p>
                   </div>
                 </div>
 
@@ -396,35 +492,66 @@ export default function NavbarEditor() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
-                          <input
-                            type="text"
-                            value={dropItem.label || ''}
-                            onChange={(e) => updateDropdownItem(index, dropIndex, 'label', e.target.value)}
-                            className="px-2 py-1 border rounded text-sm"
-                            placeholder="Label"
-                          />
-                          <input
-                            type="text"
-                            value={dropItem.path || ''}
-                            onChange={(e) => updateDropdownItem(index, dropIndex, 'path', e.target.value)}
-                            className="px-2 py-1 border rounded text-sm"
-                            placeholder="/path"
-                          />
-                          <input
-                            type="text"
-                            value={dropItem.description || ''}
-                            onChange={(e) => updateDropdownItem(index, dropIndex, 'description', e.target.value)}
-                            className="px-2 py-1 border rounded text-sm col-span-2"
-                            placeholder="Description"
-                          />
-                          <input
-                            type="text"
-                            value={dropItem.icon || '🏠'}
-                            onChange={(e) => updateDropdownItem(index, dropIndex, 'icon', e.target.value)}
-                            className="px-2 py-1 border rounded text-sm"
-                            placeholder="Icon emoji"
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                          <div className="md:col-span-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Link to Page</label>
+                            <select
+                              className="w-full px-2 py-1.5 border rounded bg-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                              value={pages.find(p => {
+                                  const path = `/${p.slug === 'home' ? '' : p.slug}`;
+                                  return dropItem.path === path;
+                              })?.slug || ''}
+                              onChange={(e) => {
+                                const page = pages.find(p => p.slug === e.target.value);
+                                if (page) handlePageSelect(index, page.slug, page.title, dropIndex);
+                              }}
+                            >
+                              <option value="">-- Custom / Manual Path --</option>
+                              {pages.map(page => (
+                                <option key={page._id} value={page.slug}>{page.title} ({page.slug})</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Label</label>
+                            <input
+                                type="text"
+                                value={dropItem.label || ''}
+                                onChange={(e) => updateDropdownItem(index, dropIndex, 'label', e.target.value)}
+                                className="w-full px-2 py-1.5 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="Label"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Path</label>
+                            <input
+                                type="text"
+                                value={dropItem.path || ''}
+                                onChange={(e) => updateDropdownItem(index, dropIndex, 'path', e.target.value)}
+                                className="w-full px-2 py-1.5 border rounded text-sm bg-gray-50 font-mono"
+                                placeholder="/path"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Description</label>
+                            <input
+                                type="text"
+                                value={dropItem.description || ''}
+                                onChange={(e) => updateDropdownItem(index, dropIndex, 'description', e.target.value)}
+                                className="w-full px-2 py-1.5 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="Short description for dropdown"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Icon Emoji</label>
+                            <input
+                                type="text"
+                                value={dropItem.icon || '🏠'}
+                                onChange={(e) => updateDropdownItem(index, dropIndex, 'icon', e.target.value)}
+                                className="w-full px-2 py-1.5 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="Emoji"
+                            />
+                          </div>
                         </div>
                       </div>
                     ))}

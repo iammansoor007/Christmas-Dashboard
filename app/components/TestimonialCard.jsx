@@ -47,13 +47,13 @@ const getInitials = (name) => {
   return name.trim().slice(0, 2).toUpperCase();
 };
 
-const Testimonials = () => {
+const Testimonials = ({ data: propData }) => {
   const [current, setCurrent] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [activeStarCount, setActiveStarCount] = useState(0);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
   const containerRef = useRef(null);
   const autoRotateTimerRef = useRef(null);
   const dragStartX = useRef(0);
@@ -63,6 +63,12 @@ const Testimonials = () => {
 
   // Load data from API
   useEffect(() => {
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       try {
         const response = await fetch("/api/testimonials");
@@ -76,7 +82,7 @@ const Testimonials = () => {
     };
 
     loadData();
-  }, []);
+  }, [propData]);
 
   // Define testimonialsList
   const testimonialsList =

@@ -11,12 +11,12 @@ import {
 import { GiSparkles } from "react-icons/gi";
 import * as Icons from "react-icons/fa";
 
-const AwardWinningServicesSection = () => {
+const AwardWinningServicesSection = ({ data: propData }) => {
   const containerRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(null);
   const [isClient, setIsClient] = useState(false);
   const [services, setServices] = useState([]);
-  const [sectionData, setSectionData] = useState(null);
+  const [sectionData, setSectionData] = useState(propData || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,46 +27,46 @@ const AwardWinningServicesSection = () => {
   }, []);
 
   useEffect(() => {
-    fetch('/api/services')
-      .then(res => res.json())
-      .then(data => {
-        console.log('Data loaded:', data);
-        // Check if data is array or object
-        if (Array.isArray(data)) {
-          // New API returns array of services
-          setServices(data.filter(s => s.status === 'published' && s.showOnHomepage === true));
-          setSectionData({
-            badge: "Premium Services",
-            title: { prefix: "Premium", text: "Christmas Lighting" },
-            subtitle: "Custom holiday lighting designed to make your home stand out.",
-            buttons: { primary: "View All Services" }
-          });
-        } else if (data && data.items) {
-          // Old API structure
-          setServices(data.items.filter(s => s.status === 'published' && s.showOnHomepage !== false));
-          setSectionData({
-            badge: data.badge,
-            title: data.title,
-            subtitle: data.subtitle,
-            buttons: data.buttons
-          });
-        } else {
-          setServices([]);
-          setSectionData({
-            badge: "Premium Services",
-            title: { prefix: "Premium", text: "Christmas Lighting" },
-            subtitle: "Custom holiday lighting designed to make your home stand out.",
-            buttons: { primary: "View All Services" }
-          });
+    const loadContent = async () => {
+        try {
+            const res = await fetch('/api/services');
+            const data = await res.json();
+            
+            console.log('Data loaded:', data);
+            // Check if data is array or object
+            if (Array.isArray(data)) {
+              // New API returns array of services
+              setServices(data.filter(s => s.status === 'published' && s.showOnHomepage === true));
+              if (!propData) {
+                  setSectionData({
+                    badge: "Premium Services",
+                    title: { prefix: "Premium", text: "Christmas Lighting" },
+                    subtitle: "Custom holiday lighting designed to make your home stand out.",
+                    buttons: { primary: "View All Services" }
+                  });
+              }
+            } else if (data && data.items) {
+              // Old API structure
+              setServices(data.items.filter(s => s.status === 'published' && s.showOnHomepage !== false));
+              if (!propData) {
+                  setSectionData({
+                    badge: data.badge,
+                    title: data.title,
+                    subtitle: data.subtitle,
+                    buttons: data.buttons
+                  });
+              }
+            }
+            setLoading(false);
+        } catch (err) {
+            console.error('Error:', err);
+            setError(err.message);
+            setLoading(false);
         }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error:', err);
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+    };
+
+    loadContent();
+  }, [propData]);
 
   const getIcon = (iconName) => {
     if (!iconName) return FaStar;

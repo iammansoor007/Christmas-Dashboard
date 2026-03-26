@@ -60,13 +60,13 @@ const getIcon = (iconName) => {
   return iconMap[iconName] || FaStar;
 };
 
-const AboutUs = () => {
+const AboutUs = ({ data: propData }) => {
   const [openFaq, setOpenFaq] = useState(null);
   const [activeTab, setActiveTab] = useState('seasonal');
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,6 +80,12 @@ const AboutUs = () => {
     window.scrollTo(0, 0);
     setIsVisible(true);
     setMounted(true);
+
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
 
     const loadData = async () => {
       try {

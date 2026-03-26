@@ -431,10 +431,11 @@ const ConsultationModal = ({ isOpen, onClose }) => {
   );
 };
 
-const ServicesPage = () => {
+const ServicesPage = ({ data: propData }) => {
+  const [openFaq, setOpenFaq] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [pageData, setPageData] = useState(null);
+  const [pageData, setPageData] = useState(propData || null);
   const [servicesData, setServicesData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -442,6 +443,7 @@ const ServicesPage = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [imageErrors, setImageErrors] = useState({});
   const heroRef = useRef(null);
+  const containerRef = useRef(null);
 
   // Load data from both APIs
   useEffect(() => {
@@ -450,12 +452,16 @@ const ServicesPage = () => {
 
     const loadData = async () => {
       try {
-        // Load Services Page data (hero, header, etc.)
-        const pageResponse = await fetch('/api/services-page');
-        const pageJson = await pageResponse.json();
-        setPageData(pageJson);
+        setLoading(true);
 
-        // Load Services items (reuse from homepage services)
+        // Load page specific data (hero, header etc) if not provided via props
+        if (!propData) {
+            const pageResponse = await fetch('/api/services-page');
+            const pageJson = await pageResponse.json();
+            setPageData(pageJson);
+        }
+
+        // Always load the services list (or use from props if specialized)
         const servicesResponse = await fetch('/api/services');
         const servicesJson = await servicesResponse.json();
         setServicesData(servicesJson);
@@ -534,7 +540,7 @@ const ServicesPage = () => {
   }
 
   const { hero, servicesHeader, bottomCta, seo } = pageData;
-  const services = servicesData.items;
+  const services = Array.isArray(servicesData) ? servicesData : (servicesData.items || []);
 
   // Default placeholder image
   const placeholderImage = '/images/placeholder-service.jpg';
@@ -728,7 +734,7 @@ const ServicesPage = () => {
 
                       <div className="flex justify-center lg:justify-start mt-auto">
                         <Link
-                          href={service.ctaLink || `/services/${service.title.toLowerCase().replace(/\s+/g, '-')}`}
+                          href={service.slug ? `/services/${service.slug}` : `/services/${service.title.toLowerCase().replace(/\s+/g, '-')}`}
                           className="group relative overflow-hidden inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-amber-400 to-red-500 text-white font-semibold rounded-full hover:shadow-2xl hover:scale-105 transition-all duration-300"
                         >
                           <span className="relative z-10 flex items-center gap-2">

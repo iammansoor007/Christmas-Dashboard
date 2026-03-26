@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '../../../lib/mongodb';
 import Page from '../../../lib/models/Page';
+import { TEMPLATE_DEFAULTS } from '../../../lib/templateDefaults';
 
 function generateSlug(title) {
     return title
@@ -9,10 +10,21 @@ function generateSlug(title) {
         .replace(/^-|-$/g, '');
 }
 
-export async function GET() {
+export async function GET(request) {
     try {
         await connectDB();
-        const pages = await Page.find().sort({ createdAt: -1 });
+        const { searchParams } = new URL(request.url);
+        const query = {};
+        
+        if (searchParams.get('status')) {
+            query.status = searchParams.get('status');
+        }
+        
+        if (searchParams.get('isHomepage')) {
+            query.isHomepage = searchParams.get('isHomepage') === 'true';
+        }
+
+        const pages = await Page.find(query).sort({ createdAt: -1 });
         return NextResponse.json(pages);
     } catch (error) {
         console.error('GET pages error:', error);
@@ -37,9 +49,14 @@ export async function POST(request) {
 
         data.slug = slug;
 
-        // If this is homepage, unset other homepages
-        if (data.isHomepage) {
-            await Page.updateMany({ isHomepage: true }, { $set: { isHomepage: false } });
+        // Copy default content from template
+        if (data.template && TEMPLATE_DEFAULTS[data.template]) {
+            data.content = TEMPLATE_DEFAULTS[data.template];
+        }
+
+        // If this is homepage, unset ALL other homepages
+        if (data.isHomepage === true) {
+            await Page.updateMany({}, { $set: { isHomepage: false } });
         }
 
         const page = await Page.create(data);
@@ -55,6 +72,11 @@ export async function PUT(request) {
         await connectDB();
         const data = await request.json();
         const { _id, ...updateData } = data;
+
+        // If this is being set as homepage, unset ALL other homepages
+        if (updateData.isHomepage === true) {
+            await Page.updateMany({ _id: { $ne: _id } }, { $set: { isHomepage: false } });
+        }
 
         const page = await Page.findByIdAndUpdate(_id, updateData, { new: true });
         return NextResponse.json(page);

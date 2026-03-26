@@ -19,16 +19,15 @@ export default function HomeTemplate({ data, seo }) {
 
     return (
         <>
-            <Hero />
-            <ChristmasLightingSection />
-            <AwardWinningServicesSection />
-
-            <HowWeWorkSection />
-            <VanMapSection />
-            <RefinedWorkShowcase />
-            <Testimonials />
-            <FAQSection />
-            <ModernQuoteForm />
+            <Hero data={data?.hero} />
+            <ChristmasLightingSection data={data?.servicesSection || data?.services} />
+            <AwardWinningServicesSection data={data?.awardWinningServices || data?.servicesList} />
+            <HowWeWorkSection data={data?.howWeWork} />
+            <VanMapSection data={data?.vanMap} />
+            <RefinedWorkShowcase data={data?.workShowcase} />
+            <Testimonials data={data?.testimonials} />
+            <FAQSection data={data?.faq} />
+            <ModernQuoteForm data={data?.quoteForm} />
         </>
     );
 }

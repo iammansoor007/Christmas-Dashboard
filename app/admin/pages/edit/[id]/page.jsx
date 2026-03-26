@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft, FaSave, FaEye, FaEyeSlash, FaTrash } from 'react-icons/fa';
+import { TEMPLATE_DEFAULTS } from '../../../../../lib/templateDefaults';
 
 const TEMPLATE_INFO = {
     home: 'Home Page',
@@ -51,11 +52,29 @@ export default function EditPage() {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         if (name.startsWith('seo.')) {
-            const seoField = name.split('.')[1];
             setFormData(prev => ({
                 ...prev,
                 seo: { ...prev.seo, [seoField]: value }
             }));
+        } else if (name.startsWith('content.')) {
+            const parts = name.split('.'); // e.g., ["content", "aboutSection", "paragraphs", "0"]
+            setFormData(prev => {
+                const newFormData = { ...prev };
+                let current = newFormData;
+                for (let i = 0; i < parts.length - 1; i++) {
+                    const part = parts[i];
+                    
+                    // If the current part is an array, we need special handling
+                    if (Array.isArray(current[part])) {
+                        current[part] = [...current[part]];
+                    } else {
+                        current[part] = { ...current[part] };
+                    }
+                    current = current[part];
+                }
+                current[parts[parts.length - 1]] = value;
+                return newFormData;
+            });
         } else {
             setFormData(prev => ({
                 ...prev,
@@ -147,15 +166,13 @@ export default function EditPage() {
                         </p>
                     </div>
                 </div>
-                {!page.isHomepage && (
-                    <button
-                        onClick={handleDelete}
-                        className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                        <FaTrash size={16} />
-                        Delete Page
-                    </button>
-                )}
+                <button
+                    onClick={handleDelete}
+                    className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                    <FaTrash size={16} />
+                    Delete Page
+                </button>
             </div>
 
             {/* Success Message */}
@@ -313,12 +330,120 @@ export default function EditPage() {
                     </div>
                 </div>
 
-                {/* Note about content editing */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800">
-                        <strong>Note:</strong> Content for this page is managed through the <strong>{TEMPLATE_INFO[page.template]}</strong> template.
-                        To edit the actual content (hero sections, text, images), go to the respective section in the admin panel.
-                    </p>
+                {/* Page Content Editor */}
+                <div className="border-t border-gray-200 pt-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Page Content</h2>
+                    <div className="space-y-6">
+                        {formData.content && Object.keys(formData.content).length > 0 ? (
+                            <div className="grid gap-6">
+                                {Object.entries(formData.content).map(([sectionKey, sectionValue]) => (
+                                    <div key={sectionKey} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                        <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 border-b pb-2 flex items-center justify-between">
+                                            {sectionKey.replace(/([A-Z])/g, ' $1')}
+                                        </h3>
+                                        <div className="space-y-4">
+                                            {typeof sectionValue === 'object' && !Array.isArray(sectionValue) ? (
+                                                Object.entries(sectionValue).map(([fieldKey, fieldValue]) => {
+                                                    const fieldName = `content.${sectionKey}.${fieldKey}`;
+                                                    
+                                                    if (typeof fieldValue === 'object' && !Array.isArray(fieldValue)) {
+                                                        return Object.entries(fieldValue).map(([subKey, subValue]) => (
+                                                            <div key={`${fieldName}.${subKey}`}>
+                                                                <label className="block text-xs font-medium text-gray-500 mb-1 uppercase">
+                                                                    {fieldKey} {subKey}
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    name={`${fieldName}.${subKey}`}
+                                                                    value={subValue || ''}
+                                                                    onChange={handleChange}
+                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                                                                />
+                                                            </div>
+                                                        ));
+                                                    }
+
+                                                    if (Array.isArray(fieldValue)) {
+                                                        return (
+                                                            <div key={fieldName} className="space-y-2">
+                                                                <label className="block text-xs font-medium text-gray-500 mb-1 uppercase">
+                                                                    {fieldKey}
+                                                                </label>
+                                                                {fieldValue.map((item, idx) => (
+                                                                    <div key={`${fieldName}.${idx}`}>
+                                                                        <textarea
+                                                                            name={`${fieldName}.${idx}`}
+                                                                            value={item || ''}
+                                                                            onChange={handleChange}
+                                                                            rows="2"
+                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 mb-1"
+                                                                        />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <div key={fieldName}>
+                                                            <label className="block text-xs font-medium text-gray-500 mb-1 uppercase">
+                                                                {fieldKey}
+                                                            </label>
+                                                            {fieldKey.toLowerCase().includes('subtitle') || fieldKey.toLowerCase().includes('description') ? (
+                                                                <textarea
+                                                                    name={fieldName}
+                                                                    value={fieldValue || ''}
+                                                                    onChange={handleChange}
+                                                                    rows="2"
+                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                                                                />
+                                                            ) : (
+                                                                <input
+                                                                    type="text"
+                                                                    name={fieldName}
+                                                                    value={fieldValue || ''}
+                                                                    onChange={handleChange}
+                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <div key={`content.${sectionKey}`}>
+                                                    <label className="block text-xs font-medium text-gray-500 mb-1 uppercase">
+                                                        {sectionKey}
+                                                    </label>
+                                                    <textarea
+                                                        name={`content.${sectionKey}`}
+                                                        value={sectionValue || ''}
+                                                        onChange={handleChange}
+                                                        rows="4"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                <p className="text-gray-500">No content fields available for this template yet.</p>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (TEMPLATE_DEFAULTS[formData.template]) {
+                                            setFormData(prev => ({ ...prev, content: TEMPLATE_DEFAULTS[formData.template] }));
+                                        }
+                                    }}
+                                    className="mt-4 text-blue-600 font-medium hover:underline"
+                                >
+                                    Initialize with Defaults
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Submit Buttons */}

@@ -29,11 +29,17 @@ const getIcon = (iconName) => {
     return Icons[iconName] || FaShieldAlt;
 };
 
-const PrivacyPolicy = () => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+const PrivacyPolicy = ({ data: propData }) => {
+    const [data, setData] = useState(propData || null);
+    const [loading, setLoading] = useState(!propData);
 
     useEffect(() => {
+        if (propData) {
+            setData(propData);
+            setLoading(false);
+            return;
+        }
+
         const fetchData = async () => {
             try {
                 const response = await fetch("/api/privacy-page");
@@ -47,7 +53,7 @@ const PrivacyPolicy = () => {
         };
         fetchData();
         window.scrollTo(0, 0);
-    }, []);
+    }, [propData]);
 
     if (loading) {
         return (

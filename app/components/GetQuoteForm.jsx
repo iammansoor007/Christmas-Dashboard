@@ -25,7 +25,7 @@ const iconMap = {
   FaCheckCircle, FaStar, FaMedal, FaShieldAlt, FaClock, FaDollarSign
 };
 
-const ModernQuoteForm = () => {
+const ModernQuoteForm = ({ data: propData }) => {
   const [formData, setFormData] = useState({
     fname: "",
     lname: "",
@@ -46,8 +46,8 @@ const ModernQuoteForm = () => {
   const [files, setFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
 
   // Lighting areas with icons (static)
   const lightingAreas = [
@@ -59,6 +59,12 @@ const ModernQuoteForm = () => {
 
   // Load data from API
   useEffect(() => {
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const loadData = async () => {
       try {
         const response = await fetch("/api/quote-form");
@@ -72,7 +78,7 @@ const ModernQuoteForm = () => {
     };
 
     loadData();
-  }, []);
+  }, [propData]);
 
   const getIcon = (iconName) => {
     if (!iconName) return null;

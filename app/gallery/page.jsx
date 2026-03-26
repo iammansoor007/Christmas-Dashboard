@@ -138,10 +138,10 @@ const TouchSwipeLightbox = ({ selectedImage, setSelectedImage, filteredImages })
   );
 };
 
-const Gallery = () => {
+const Gallery = ({ data: propData }) => {
   const [mounted, setMounted] = useState(false);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(propData || null);
+  const [loading, setLoading] = useState(!propData);
   const [selectedImage, setSelectedImage] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
@@ -167,6 +167,15 @@ const Gallery = () => {
 
   // Fetch data from API
   useEffect(() => {
+    setMounted(true);
+    window.scrollTo(0, 0);
+
+    if (propData) {
+      setData(propData);
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const response = await fetch('/api/gallery-page');
@@ -179,9 +188,7 @@ const Gallery = () => {
       }
     };
     fetchData();
-    setMounted(true);
-    window.scrollTo(0, 0);
-  }, []);
+  }, [propData]);
 
   // Get images from data
   const galleryImages = data?.images || [];

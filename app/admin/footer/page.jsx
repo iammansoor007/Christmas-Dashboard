@@ -6,6 +6,7 @@ import { FaPlus, FaTrash, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 
 export default function FooterEditor() {
   const [data, setData] = useState(null);
+  const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -18,6 +19,17 @@ export default function FooterEditor() {
       router.push('/admin/login');
     }
   }, [router]);
+
+  useEffect(() => {
+    fetch('/api/pages')
+      .then(res => res.json())
+      .then(pagesData => {
+        if (Array.isArray(pagesData)) {
+            setPages(pagesData);
+        }
+      })
+      .catch(err => console.error('Error fetching pages:', err));
+  }, []);
 
   useEffect(() => {
     fetch('/api/footer')
@@ -137,6 +149,22 @@ export default function FooterEditor() {
   };
 
   // Links Management
+  const handlePageSelectForLink = (category, index, pageSlug, pageTitle) => {
+    const path = `/${pageSlug === 'home' ? '' : pageSlug}`;
+    setData(prev => {
+      const newLinks = [...prev.links[category]];
+      newLinks[index] = { ...newLinks[index], href: path };
+      const currentLabel = newLinks[index].label;
+      if (!currentLabel || currentLabel === 'New Link' || currentLabel === '') {
+        newLinks[index].label = pageTitle;
+      }
+      return {
+        ...prev,
+        links: { ...prev.links, [category]: newLinks }
+      };
+    });
+  };
+
   const addLink = (category) => {
     setData(prev => ({
       ...prev,
@@ -500,43 +528,70 @@ export default function FooterEditor() {
             </div>
 
             {data.links?.Services?.map((link, index) => (
-              <div key={index} className="flex items-center gap-4 p-2 bg-gray-50 rounded">
-                <div className="flex gap-1">
+              <div key={index} className="flex flex-col gap-4 p-4 bg-gray-50 rounded border">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => moveLink('Services', index, 'up')}
+                      disabled={index === 0}
+                      className={`p-1 ${index === 0 ? 'text-gray-300' : 'text-gray-600 hover:text-blue-600'}`}
+                    >
+                      <FaArrowUp size={14} />
+                    </button>
+                    <button
+                      onClick={() => moveLink('Services', index, 'down')}
+                      disabled={index === data.links.Services.length - 1}
+                      className={`p-1 ${index === data.links.Services.length - 1 ? 'text-gray-300' : 'text-gray-600 hover:text-blue-600'}`}
+                    >
+                      <FaArrowDown size={14} />
+                    </button>
+                  </div>
                   <button
-                    onClick={() => moveLink('Services', index, 'up')}
-                    disabled={index === 0}
-                    className={`p-1 ${index === 0 ? 'text-gray-300' : 'text-gray-600 hover:text-blue-600'}`}
+                    onClick={() => removeLink('Services', index)}
+                    className="p-1 text-red-500 hover:bg-red-50 rounded"
                   >
-                    <FaArrowUp size={14} />
-                  </button>
-                  <button
-                    onClick={() => moveLink('Services', index, 'down')}
-                    disabled={index === data.links.Services.length - 1}
-                    className={`p-1 ${index === data.links.Services.length - 1 ? 'text-gray-300' : 'text-gray-600 hover:text-blue-600'}`}
-                  >
-                    <FaArrowDown size={14} />
+                    <FaTrash size={14} />
                   </button>
                 </div>
-                <input
-                  type="text"
-                  value={link.label}
-                  onChange={(e) => updateLink('Services', index, 'label', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded"
-                  placeholder="Link Label"
-                />
-                <input
-                  type="text"
-                  value={link.href}
-                  onChange={(e) => updateLink('Services', index, 'href', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded"
-                  placeholder="/services/..."
-                />
-                <button
-                  onClick={() => removeLink('Services', index)}
-                  className="p-2 text-red-500 hover:text-red-700"
-                >
-                  <FaTrash size={16} />
-                </button>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Link to Page</label>
+                    <select
+                      className="w-full px-3 py-2 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
+                      value={pages.find(p => `/${p.slug === 'home' ? '' : p.slug}` === link.href)?.slug || ''}
+                      onChange={(e) => {
+                        const page = pages.find(p => p.slug === e.target.value);
+                        if (page) handlePageSelectForLink('Services', index, page.slug, page.title);
+                      }}
+                    >
+                      <option value="">-- Custom / Manual Path --</option>
+                      {pages.map(page => (
+                        <option key={page._id} value={page.slug}>{page.title} ({page.slug})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                    <input
+                      type="text"
+                      value={link.label}
+                      onChange={(e) => updateLink('Services', index, 'label', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+                      placeholder="Link Label"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Path / URL</label>
+                    <input
+                      type="text"
+                      value={link.href}
+                      onChange={(e) => updateLink('Services', index, 'href', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg bg-gray-50 font-mono text-sm"
+                      placeholder="/services/..."
+                    />
+                  </div>
+                </div>
               </div>
             ))}
 
@@ -558,43 +613,70 @@ export default function FooterEditor() {
             </div>
 
             {data.links?.Company?.map((link, index) => (
-              <div key={index} className="flex items-center gap-4 p-2 bg-gray-50 rounded">
-                <div className="flex gap-1">
+              <div key={index} className="flex flex-col gap-4 p-4 bg-gray-50 rounded border">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => moveLink('Company', index, 'up')}
+                      disabled={index === 0}
+                      className={`p-1 ${index === 0 ? 'text-gray-300' : 'text-gray-600 hover:text-blue-600'}`}
+                    >
+                      <FaArrowUp size={14} />
+                    </button>
+                    <button
+                      onClick={() => moveLink('Company', index, 'down')}
+                      disabled={index === data.links.Company.length - 1}
+                      className={`p-1 ${index === data.links.Company.length - 1 ? 'text-gray-300' : 'text-gray-600 hover:text-blue-600'}`}
+                    >
+                      <FaArrowDown size={14} />
+                    </button>
+                  </div>
                   <button
-                    onClick={() => moveLink('Company', index, 'up')}
-                    disabled={index === 0}
-                    className={`p-1 ${index === 0 ? 'text-gray-300' : 'text-gray-600 hover:text-blue-600'}`}
+                    onClick={() => removeLink('Company', index)}
+                    className="p-1 text-red-500 hover:bg-red-50 rounded"
                   >
-                    <FaArrowUp size={14} />
-                  </button>
-                  <button
-                    onClick={() => moveLink('Company', index, 'down')}
-                    disabled={index === data.links.Company.length - 1}
-                    className={`p-1 ${index === data.links.Company.length - 1 ? 'text-gray-300' : 'text-gray-600 hover:text-blue-600'}`}
-                  >
-                    <FaArrowDown size={14} />
+                    <FaTrash size={14} />
                   </button>
                 </div>
-                <input
-                  type="text"
-                  value={link.label}
-                  onChange={(e) => updateLink('Company', index, 'label', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded"
-                  placeholder="Link Label"
-                />
-                <input
-                  type="text"
-                  value={link.href}
-                  onChange={(e) => updateLink('Company', index, 'href', e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded"
-                  placeholder="/about"
-                />
-                <button
-                  onClick={() => removeLink('Company', index)}
-                  className="p-2 text-red-500 hover:text-red-700"
-                >
-                  <FaTrash size={16} />
-                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Link to Page</label>
+                    <select
+                      className="w-full px-3 py-2 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-blue-500"
+                      value={pages.find(p => `/${p.slug === 'home' ? '' : p.slug}` === link.href)?.slug || ''}
+                      onChange={(e) => {
+                        const page = pages.find(p => p.slug === e.target.value);
+                        if (page) handlePageSelectForLink('Company', index, page.slug, page.title);
+                      }}
+                    >
+                      <option value="">-- Custom / Manual Path --</option>
+                      {pages.map(page => (
+                        <option key={page._id} value={page.slug}>{page.title} ({page.slug})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                    <input
+                      type="text"
+                      value={link.label}
+                      onChange={(e) => updateLink('Company', index, 'label', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"
+                      placeholder="Link Label"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Path / URL</label>
+                    <input
+                      type="text"
+                      value={link.href}
+                      onChange={(e) => updateLink('Company', index, 'href', e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg bg-gray-50 font-mono text-sm"
+                      placeholder="/about"
+                    />
+                  </div>
+                </div>
               </div>
             ))}
 

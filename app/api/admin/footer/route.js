@@ -7,12 +7,16 @@ export async function POST(request) {
         await connectDB();
 
         const data = await request.json();
+        const { _id, __v, navItems, ...updateData } = data;
 
-        data.lastUpdated = new Date();
-        delete data._id;
-        delete data.__v;
+        updateData.lastUpdated = new Date();
 
-        const savedData = await Footer.create(data);
+        // Find existing or create new to avoid duplicates
+        const savedData = await Footer.findOneAndUpdate(
+            {},
+            { $set: updateData },
+            { upsert: true, new: true, runValidators: true }
+        );
 
         return NextResponse.json({
             success: true,
@@ -20,7 +24,7 @@ export async function POST(request) {
         });
 
     } catch (error) {
-        console.error('Error saving:', error);
+        console.error('Error saving footer:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
