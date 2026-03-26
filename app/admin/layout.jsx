@@ -58,6 +58,36 @@ const NAVIGATION_CONFIG = {
       { href: '/admin/quote-form', icon: Edit, label: 'Quote Form' }
     ]
   },
+  pages: {
+    title: 'All Pages',
+    icon: Layers,
+    badge: '9',
+    groups: [
+      {
+        title: 'Main Content',
+        items: [
+          { href: '/admin/about', icon: Info, label: 'About Page' },
+          { href: '/admin/services-page', icon: Briefcase, label: 'Services Overview' },
+          { href: '/admin/gallery', icon: Images, label: 'Gallery Management' },
+          { href: '/admin/contact', icon: Phone, label: 'Contact Page' }
+        ]
+      },
+      {
+        title: 'Service Pages',
+        items: [
+          { href: '/admin/residential', icon: Home, label: 'Residential Lighting' },
+          { href: '/admin/commercial', icon: Building, label: 'Commercial Lighting' },
+          { href: '/admin/permanent', icon: Zap, label: 'Permanent Lighting' }
+        ]
+      },
+      {
+        title: 'Locations',
+        items: [
+          { href: '/admin/service-area', icon: Map, label: 'Service Areas' }
+        ]
+      }
+    ]
+  },
   shared: {
     title: 'Shared Components',
     icon: Share2,
@@ -134,6 +164,7 @@ const useSidebarState = () => {
 const useMenuState = () => {
   const [openMenus, setOpenMenus] = useState({
     homepage: true,
+    pages: true,
     shared: false,
     siteSettings: false,
     legal: false
@@ -186,23 +217,24 @@ const MenuItem = memo(({ href, icon: Icon, children, badge, isActive }) => {
       `}
     >
       {Icon ? (
-        <Icon
-          size={18}
-          className={`transition-colors duration-200 ${active ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-600'
-            }`}
+        <Icon 
+          size={18} 
+          className={`transition-colors duration-200 ${
+            active ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-600'
+          }`} 
         />
       ) : (
         <div className="w-[18px] h-[18px] rounded bg-gray-200" />
       )}
-
+      
       <span className="flex-1">{children}</span>
-
+      
       {badge && (
         <span className="px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
           {badge}
         </span>
       )}
-
+      
       {active && <div className="w-1 h-6 bg-primary-600 rounded-full" />}
     </Link>
   );
@@ -210,14 +242,14 @@ const MenuItem = memo(({ href, icon: Icon, children, badge, isActive }) => {
 
 MenuItem.displayName = 'MenuItem';
 
-const MenuGroup = memo(({
-  title,
-  icon: Icon,
-  children,
-  isOpen,
-  onToggle,
+const MenuGroup = memo(({ 
+  title, 
+  icon: Icon, 
+  children, 
+  isOpen, 
+  onToggle, 
   badge,
-  description
+  description 
 }) => {
   const contentRef = useRef(null);
   const [height, setHeight] = useState(0);
@@ -251,7 +283,7 @@ const MenuGroup = memo(({
           {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </div>
       </button>
-
+      
       <div
         className="ml-4 mt-1 overflow-hidden transition-all duration-300 ease-in-out"
         style={{
@@ -381,10 +413,39 @@ const Sidebar = memo(({ sidebarOpen, setSidebarOpen, openMenus, toggleMenu, hand
             ))}
           </MenuGroup>
 
-          <MenuItem href="/admin/pages" icon={Layers} isActive={isActive}>
-            📄 Pages Manager
-          </MenuItem>
+          {/* All Pages */}
+          <MenuGroup
+            title={NAVIGATION_CONFIG.pages.title}
+            icon={NAVIGATION_CONFIG.pages.icon}
+            isOpen={openMenus.pages}
+            onToggle={() => toggleMenu('pages')}
+            badge={NAVIGATION_CONFIG.pages.badge}
+          >
+            {NAVIGATION_CONFIG.pages.groups.map((group, idx) => (
+              <div key={idx}>
+                <div className="px-3 py-1 mt-1 mb-1">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                    {group.title}
+                  </p>
+                </div>
+                {group.items.map((item) => (
+                  <MenuItem
+                    key={item.href}
+                    href={item.href}
+                    icon={item.icon}
+                    isActive={isActive}
+                  >
+                    {item.label}
+                  </MenuItem>
+                ))}
+              </div>
+            ))}
+          </MenuGroup>
 
+          <MenuItem href="/admin/pages" icon={FileCode} isActive={isActive}>
+            📄 Pages
+          </MenuItem>
+          
           <MenuItem href="/admin/services-manager" icon={Sparkles} isActive={isActive}>
             ✨ Services
           </MenuItem>
